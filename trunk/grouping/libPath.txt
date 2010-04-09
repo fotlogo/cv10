@@ -1,0 +1,1 @@
+LD_LIBRARY_PATH=/projects/vision/6/jaechul/intel/Compiler/11.1/lib/intel64/:/projects/vision/6/jaechul/intel/Compiler/11.1/mkl/lib/em64t/ 
