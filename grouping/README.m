@@ -66,25 +66,42 @@ ucm2 = imread('data/101087_ucm2.bmp');
 
 % convert ucm to the size of the original image
 ucm = ucm2(3:2:end, 3:2:end);
+orig_img = imread('data/101087.jpg');
 
 % get the boundaries of segmentation at scale k in range [1 255]
-k = 1;
+mask2 = ones(size(ucm2,1), size(ucm2,2));
+hierarchy(orig_img, mask2, ucm2, 1, '1');
+return
+
+k = 100;
 bdry = (ucm >= k);
+
+%figure; imshow((ucm >= 241));
+%figure; imshow((ucm >= 236));
+
+%unique(ucm)
 
 % get the partition at scale k without boundaries:
 labels2 = bwlabel(ucm2 <= k);
 labels = labels2(2:2:end, 2:2:end);
 
-% bdry is binary
-% labels is grayscale
+imwrite(labels2, colormap(jet), sprintf('output/labels.bmp'));
+imwrite(labels2, sprintf('output/bdry.bmp'));
 
-labels = uint8(labels);
-region = (labels == median(unique(labels)));
-%class(labels)
 
-imwrite(labels,'data/101087_labels.bmp');
-imwrite(region,'data/101087_region.bmp');
-imwrite(bdry,'data/101087_bdry.bmp');
+indices = randperm(size(unique(labels), 1));
+for i=1:min(0, size(indices,2)),
+%  region = uint8((labels == median(unique(labels))));
+  region = uint8((labels == indices(i)));
+  img = orig_img;
+  img = bsxfun(@times, img, region);
+  %figure;imshow(img);
+  imwrite(labels2, sprintf('output/labels%d.bmp', i));
+end
+
+%imwrite(labels,'data/101087_labels.bmp');
+%imwrite(region,'data/101087_region.bmp');
+%imwrite(bdry,'data/101087_bdry.bmp');
 
 %figure;imshow('data/101087.jpg');
 %figure;imshow(ucm);
