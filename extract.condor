@@ -1,0 +1,20 @@
+universe = vanilla
+
+#executable = /lusr/bin/matlab
+#arguments = -r extract
+
+#executable = /bin/sh
+executable = /lusr/bin/bash
+arguments = extract.sh 
+
+Error = err.$(Process)
+#Input = in.$(Process)
+Output = out.$(Process) 
+log = extract.log
+
+notification = Complete 
++Group = "GRAD" 
++Project = "OTHER" 
++ProjectDescription = "Creating features for images for Computer Vision project" 
+
+Queue 
