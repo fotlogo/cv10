@@ -1,5 +1,5 @@
 %% compute globalPb
-function [] = gPb(fn, outdir)
+function [img, ucm2, mask2] = gPb(fn, outdir)
 
 %clear all; close all; clc;
 
@@ -32,3 +32,7 @@ if ~exist(outFile, 'file')
   %imwrite(ucm2,'data/101087_ucm2.bmp');
   imwrite(ucm2, outucm2);
 end
+
+ucm2 = imread('data/101087_ucm2.bmp');
+img = imread('data/101087.jpg');
+mask2 = ones(size(ucm2,1), size(ucm2,2));
