@@ -89,7 +89,7 @@ fclose(fid);
 numfeatures = 1000;
 numatts = size(atts, 1);
 
-TRAIN = 0;
+TRAIN = 1;
 TEST = 1;
 
 features_train = zeros(count_train, numfeatures);
@@ -115,7 +115,7 @@ if (TRAIN)
   for i = 1:numatts
     att = attributes_train(:,i);
 
-    model = svmtrain(att, features_train, '');
+    model = svmtrain(att, features_train, '-q');
     if (i == 1)
       models = model;
     else
@@ -124,8 +124,8 @@ if (TRAIN)
 
     att = attributes_train(:,i);
     feat = features_train(:,i);
-    [predict_label, accuracy, dec_values] = svmpredict(att, feat, model);
-    %[T, predict_label, accuracy, dec_values] = evalc('svmpredict(att, feat, model)');
+    %[predict_label, accuracy, dec_values] = svmpredict(att, feat, model);
+    [T, predict_label, accuracy, dec_values] = evalc('svmpredict(att, feat, model)');
     att_pred(:, i) = predict_label;
   end
   %disp('Predicted attributes');
@@ -172,6 +172,7 @@ if (TEST)
   att_actual = attributes_test(imgidx,:);
   features = features_test(imgidx,:);
   for i = 1:numatts
+    svm_print_string = 0;
     [T, predict_label, accuracy, dec_values] = evalc('svmpredict(att_actual(i), features, models(i))');
     att_pred(i) = predict_label;
     %disp(sprintf('%u', att_pred));

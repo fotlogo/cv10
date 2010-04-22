@@ -13,6 +13,7 @@ hog = load(hogfn);
 tcfn = fullfile(tc_dir, sprintf('%s_tc.mat', img_name));
 tc = load(tcfn);
 
+% If the mask is a bounding box, use it as a bounding box
 if (size(mask, 2) == 4)
   box = mask;
   hog_ind = hog.x >= box(1) & hog.y >= box(2) & hog.x <= box(3) & ...
@@ -28,11 +29,9 @@ if (size(mask, 2) == 4)
   %feat_texture_norm = feat_texture/norm(feat_texture);
 
 else
+  % This is the case where the mask is a true mask.  It has not yet
+  % been implemented.
   hog_ind = mask(hog.y, hog.x)
 end
-
-%size(feat_hog_norm)
-%size(feat_color_norm)
-%size(feat_texture_norm)
 
 feat = feat_hog_norm; %[feat_hog_norm feat_color_norm feat_texture_norm];
