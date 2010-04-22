@@ -70,7 +70,7 @@ orig_img = imread('data/101087.jpg');
 
 % get the boundaries of segmentation at scale k in range [1 255]
 mask2 = ones(size(ucm2,1), size(ucm2,2));
-hierarchy(orig_img, mask2, ucm2, 1, '1');
+hierarchy(orig_img, 0, mask2, ucm2, 1, '1', 0);
 return
 
 k = 100;
