@@ -30,9 +30,15 @@ if (size(mask, 2) == 4)
 else
   % This is the case where the mask is a true mask.
   hog_ind = logical(arrayfun(@(x,y)mask(y,x), uint8(hog.x), uint8(hog.y)));
+  %disp(sprintf('%u', hog_ind(1:10:end, 1:10:end)'));
 
   feat_hog = hist(hog.idx(hog_ind),1:1000);
-  feat_hog_norm = feat_hog/norm(feat_hog);
+  %disp(sprintf('%u', feat_hog(1:10:end, 1:10:end)'));
+  if (nnz(feat_hog) > 0)
+    feat_hog_norm = feat_hog/norm(feat_hog);
+  else
+    feat_hog_norm = feat_hog;
+  end
 
   %feat_color = hist(tc.colorim(box(2):box(4), box(1):box(3)),1:128);
   %feat_color_norm = feat_color/norm(feat_color);
