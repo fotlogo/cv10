@@ -1,4 +1,4 @@
-function [feat] = get_features(img_name, mask, num_features)
+function [feat] = get_features(img_name, mask)
 global img_dir hog_dir tc_dir;
 
 % im = imread(fullfile(img_dir, sprintf('%s.jpg', img_name)));
@@ -29,7 +29,7 @@ if (size(mask, 2) == 4)
 
 else
   % This is the case where the mask is a true mask.
-  hog_ind = mask(hog.y, hog.x)
+  hog_ind = logical(arrayfun(@(x,y)mask(y,x), uint8(hog.x), uint8(hog.y)));
 
   feat_hog = hist(hog.idx(hog_ind),1:1000);
   feat_hog_norm = feat_hog/norm(feat_hog);

@@ -21,12 +21,13 @@
 %
 %-----------------------------------------------------------
 function [] = hierarchy(img, img_name, svm, mask2, ucm2_orig, depth, path, visit)
+disp(sprintf('hierarchy %s', path));
 
 %---------------------------------------
 % For testing, return at a maximum
 % depth
 %---------------------------------------
-if depth > 3,
+if depth > 4,
   return;
 end
 
@@ -58,19 +59,19 @@ label_vec = unique(labels);
 label_vec(label_vec == 0) = [];
 
 % debug output
-disp(sprintf('%s attributes: %d, k: %d, num_labels: %d, [%d %d]', ...
-	     path, classify(ucm), k, size(label_vec, 1), min(label_vec), ...
-	     max(label_vec)));
+%disp(sprintf('%s attributes: %d, k: %d, num_labels: %d, [%d %d]', ...
+%	     path, classify(ucm), k, size(label_vec, 1), min(label_vec), ...
+%	     max(label_vec)));
 
 cm = jet(min(256, max(unique(labels2))));
-imwrite(bsxfun(@times, img, uint8(mask)), sprintf('output/img%s.jpg', path));
-%imwrite(ucm2, sprintf('output/ucm%s.bmp', path));
-%imwrite(labels2, cm, sprintf('output/labels%s.bmp', path));
-%imwrite(labels, cm, sprintf('output/labels_%s.bmp', path));
-%imwrite(mask2, sprintf('output/mask%s.bmp', path));
-%imwrite(ucm2_orig<=k, sprintf('output/logical%s.bmp', path));
+%imwrite(bsxfun(@times, img, uint8(mask)), sprintf('output/img%s.jpg', path));
+%%imwrite(ucm2, sprintf('output/ucm%s.bmp', path));
+%%imwrite(labels2, cm, sprintf('output/labels%s.bmp', path));
+%%imwrite(labels, cm, sprintf('output/labels_%s.bmp', path));
+%%imwrite(mask2, sprintf('output/mask%s.bmp', path));
+%%imwrite(ucm2_orig<=k, sprintf('output/logical%s.bmp', path));
 
-if (visit)
+if (isa(visit, 'function_handle'))
   visit(img, img_name, svm, mask, ucm);
 end
 
