@@ -1,7 +1,7 @@
-function [] = visitor(img, features, ucm, mask)
+function [] = visitor(img, img_name, svm, ucm, mask)
 
 img_masked = bsxfun(@times, img, uint8(mask));
-% mask features - not implemented
+[features]  = get_features(img_name, mask);
 
 %---------------------------------------
 % See what attributes we get for the 
@@ -9,8 +9,13 @@ img_masked = bsxfun(@times, img, uint8(mask));
 %---------------------------------------
 att_pred = zeros(1, numatts);
 for i = 1:64
-  [T, predict_label, accuracy, dec_values] = evalc('svmpredict(att_actual(i), features, models(i))');
-  att_pred(i) = predict_label;
+  y=svmval(features, svm.supVec{i}, svm.wVec{i}, svm.bVec{i}, ...
+	   svm.kernel, svm.kerneloption);
+  y(y>0)=1;
+  y(y<=0)=0;
+  att_pred(:,i)=y;
+  disp(sprintf('%2d: positive = %3d; precision = %1.2f', i, sum(y==1), ...
+	       sum(y==att_actual(:,i))/length(y)));
 end
 disp(sprintf('%u', att_pred));
 
