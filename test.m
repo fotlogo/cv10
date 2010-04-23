@@ -48,9 +48,13 @@ hog_dir = 'out/ayahoo_test_images/processed/hog';
 tc_dir = 'out/ayahoo_test_images/processed/tc2';
 [img_names img_classes bboxes attributes] = read_att_data(fname);
 
+TRAIN = 1;
+TEST = 1;
+SEGMENTATION = 0;
+count_train = 100;
+count_test = 10;
+
 % change to random of permutation here, Aibo
-count_train = 1000;
-count_test = 100;
 rand('seed', 1);
 rand_indices=randperm(length(img_names));
 train_indices=rand_indices(1:count_train);
@@ -93,15 +97,12 @@ fclose(fid);
 % Load all of the features for the
 % dataset
 %---------------------------------------
-%numfeatures = 1384;
-numfeatures = 1000;
+%num_features = 1384;
+%num_features = 1000;
 num_atts = size(atts, 1);
 
-TRAIN = 0;
-TEST = 1;
-SEGMENTATION = 0;
-
-features_train = zeros(count_train, numfeatures);
+%features_train = zeros(count_train, num_features);
+features_train = [];
 %labels_train = zeros(count_train, 1);
 
 kernel='gaussian';
@@ -116,7 +117,10 @@ if (TRAIN)
   for i = 1:count_train
     img_name = regexprep(char(names_train(i)), '\.jpg', '');
     [feat]  = get_features(img_name, bboxes_train(i,:));
-    features_train(i,:) = feat;
+    num_features = size(feat, 2);
+    %features_train(i,:) = feat;
+    features_train = [features_train; feat];
+
     %labels_train(i,:) = find(strcmp(classes, classes_train{i}));
     %disp(sprintf('%d %s %s', i, classes_train{i}, img_name));
   end
@@ -164,7 +168,7 @@ if (TRAIN)
     y=svmval(features_temp,xsup,w,b,kernel,kerneloption);
     y(y>0)=1;
     y(y<=0)=-1;
-    disp(sum(y==att_temp)/length(y))
+    %disp(sum(y==att_temp)/length(y))
     
 %     if (i == 1)
 %       models = model;
@@ -178,7 +182,9 @@ if (TRAIN)
 %     disp (sum(predict_label))
     %[T, predict_label, accuracy, dec_values] = evalc('svmpredict(att, feat, model)');
     %att_pred(:, i) = predict_label;
+    fprintf('.')
   end
+  fprintf('\n')
   save('models.mat', 'supVec', 'wVec', 'bVec');
 %disp('Predicted attributes');
   %for i = 1:size(att_pred, 1)
@@ -203,7 +209,7 @@ if (TEST)
   %---------------------------------------
   % get features for test images
   %---------------------------------------
-  features_test = zeros(count_test, numfeatures);
+  features_test = zeros(count_test, num_features);
   %labels_test = zeros(count_test, 1);
 
   % get the features for test images
