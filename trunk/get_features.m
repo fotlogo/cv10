@@ -2,7 +2,7 @@ function [feat] = get_features(img_dir, img_name, ...
 					hog_dir, tc_dir,...
 					mask, num_features)
 
-im = imread(fullfile(img_dir, sprintf('%s.jpg', img_name)));
+%im = imread(fullfile(img_dir, sprintf('%s.jpg', img_name)));
 
 % [x_min y_min x_max y_max]
 %box = bboxes(i,:);
@@ -10,8 +10,8 @@ im = imread(fullfile(img_dir, sprintf('%s.jpg', img_name)));
 hogfn = fullfile(hog_dir, sprintf('%s_hog.mat', img_name));
 hog = load(hogfn);
 
-tcfn = fullfile(tc_dir, sprintf('%s_tc.mat', img_name));
-tc = load(tcfn);
+%tcfn = fullfile(tc_dir, sprintf('%s_tc.mat', img_name));
+%tc = load(tcfn);
 
 % If the mask is a bounding box, use it as a bounding box
 if (size(mask, 2) == 4)

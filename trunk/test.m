@@ -20,7 +20,8 @@
 %   * multiclass libsvm is currently used - but we don't need
 %     multiclass!
 %------------------------------------------------------------------
-function [] = test()
+
+%function [] = test()
 addpath('grouping');
 addpath('grouping/lib');
 addpath('libsvm')
@@ -37,33 +38,29 @@ hogdir = 'out/ayahoo_test_images/processed/hog';
 tcdir = 'out/ayahoo_test_images/processed/tc2';
 [img_names img_classes bboxes attributes] = read_att_data(fname);
 
-% Takes the first 'count' images
-count = 100;%length(img_names);
-rand('seed',1);
-test_indices = (rand(1, count) < 0.2);
-%test_indices = (rand(1, count) < 0.02);
-train_indices = ~test_indices;
-
-% Takes a random set of roughly 'count' images
-perc = count / length(img_names);
-train_indices = (rand(1, length(img_names)) < perc);
-test_indices = (rand(1, length(img_names)) < perc / 10);
+% change to random of permutation here, Aibo
+count_train = 1000;
+count_test = 100;
+rand_indices=randperm(length(img_names));
+train_indices=rand_indices(1:count_train);
+test_indices=rand_indices(count_train+1:count_train+count_test);
 
 %---------------------------------------
 % split image names and classes up into
 % training and testing sets
 %---------------------------------------
-names_train = img_names(find(train_indices),:);
-names_test = img_names(find(test_indices),:);
-classes_train = img_classes(find(train_indices),:);
-classes_test = img_classes(find(test_indices),:);
-bboxes_train = bboxes(find(train_indices),:);
-bboxes_test = bboxes(find(test_indices),:);
-attributes_train = attributes(find(train_indices),:);
-attributes_test = attributes(find(test_indices),:);
 
-count_train = size(names_train, 1);
-count_test = size(names_test, 1);
+names_train = img_names(train_indices,:);
+names_test = img_names(test_indices,:);
+classes_train = img_classes(train_indices,:);
+classes_test = img_classes(test_indices,:);
+bboxes_train = bboxes(train_indices,:);
+bboxes_test = bboxes(test_indices,:);
+attributes_train = attributes(train_indices,:);
+attributes_test = attributes(test_indices,:);
+
+% count_train = size(names_train, 1);
+% count_test = size(names_test, 1);
 
 %---------------------------------------
 % get the attribute names
@@ -93,12 +90,13 @@ TRAIN = 1;
 TEST = 1;
 
 features_train = zeros(count_train, numfeatures);
-labels_train = zeros(count_train, 1);
+%labels_train = zeros(count_train, 1);
 
 %---------------------------------------
 % train a classifier for each attribute
 %---------------------------------------
 if (TRAIN)
+    disp ('Start training................')
   % get the features for training images
   for i = 1:count_train
     img_name = regexprep(char(names_train(i)), '\.jpg', '');
@@ -106,34 +104,79 @@ if (TRAIN)
 				  hogdir, tcdir, ...
 				  bboxes_train(i,:));
     features_train(i,:) = feat;
-    labels_train(i,:) = find(strcmp(classes, classes_train{i}));
-    disp(sprintf('%d %s %s', i, classes_train{i}, img_name));
+    %labels_train(i,:) = find(strcmp(classes, classes_train{i}));
+    %disp(sprintf('%d %s %s', i, classes_train{i}, img_name));
   end
 
   % train the classifier
-  att_pred = zeros(count_train, numatts);
+  %att_pred = zeros(count_train, numatts);
+  
+  % svm km
+  % Kernel Parameters
+  % -------------------------------------------------------
+  kernel='gaussian';
+  kerneloption=5;
+  C=100000000;
+  verbose=0;
+  lambda=1e-7;
+  nbclass=2;
+  % -------------------------------------------------------
+  % Solving
+  % -------------------------------------------------------
+  ypred=[];
+  supVec={};
+  wVec={};
+  bVec={};
+  
   for i = 1:numatts
     att = attributes_train(:,i);
-
-    model = svmtrain(att, features_train, '-q');
-    if (i == 1)
-      models = model;
-    else
-      models(i) = model;
+    ratio=0.3;  % ratio of positive samples
+    att_pos=find(att==1);
+    att_neg=find(att==0);
+    if ((length(att_neg)/length(att_pos))>((1-ratio)/ratio))
+        att_neg=att_neg(1:floor(length(att_pos)/ratio*(1-ratio)));
     end
+    if length(att_pos)==0
+        features_temp=features_train;
+        att_temp=att;
+    else
+        features_temp=[features_train(att_pos,:);features_train(att_neg,:)];
+        att_temp=[att(att_pos,:);att(att_neg,:)];
+    end
+    
+    % libsvm
+    %model = svmtrain(att_temp, features_temp);
 
-    att = attributes_train(:,i);
-    feat = features_train(:,i);
-    %[predict_label, accuracy, dec_values] = svmpredict(att, feat, model);
-    [T, predict_label, accuracy, dec_values] = evalc('svmpredict(att, feat, model)');
-    att_pred(:, i) = predict_label;
+    % svm km
+    att_temp(att_temp==0)=-1;
+    [xsup,w,b,pos,timeps,alpha,obj]=svmclass(features_temp,att_temp,C,lambda,kernel,kerneloption,verbose);
+    supVec=[supVec,xsup];
+    wVec=[wVec,w];
+    bVec=[bVec,b];
+    y=svmval(features_temp,xsup,w,b,kernel,kerneloption);
+    y(y>0)=1;
+    y(y<=0)=-1;
+    disp(sum(y==att_temp)/length(y))
+    
+%     if (i == 1)
+%       models = model;
+%     else
+%       models(i) = model;
+%     end
+
+%     att = attributes_train(:,i);
+%     feat = features_train;%(:,i);
+%     [predict_label, accuracy, dec_values] = svmpredict(att, feat, model);
+%     disp (sum(predict_label))
+    %[T, predict_label, accuracy, dec_values] = evalc('svmpredict(att, feat, model)');
+    %att_pred(:, i) = predict_label;
   end
   %disp('Predicted attributes');
   %for i = 1:size(att_pred, 1)
   %  disp(sprintf('%u', att_pred(i,:)));
   %end
   %save('models.mat', 'models');
-  save('models_small.mat', 'models');
+  %save('models_small.mat', 'models');
 
 else
   % if we're not training, load the classifiers from disk
@@ -146,11 +189,12 @@ end
 % test the classifiers
 %---------------------------------------
 if (TEST)
+    disp ('Start testing ..................')
   %---------------------------------------
   % get features for test images
   %---------------------------------------
   features_test = zeros(count_test, numfeatures);
-  labels_test = zeros(count_test, 1);
+  %labels_test = zeros(count_test, 1);
 
   % get the features for test images
   for i = 1:count_test
@@ -159,26 +203,54 @@ if (TEST)
 				  hogdir, tcdir, ...
 				  bboxes_test(i,:));
     features_test(i,:) = feat;
-    labels_test(i,:) = find(strcmp(classes, classes_test{i}));
-    disp(sprintf('%d %s %s', i, classes_test{i}, img_name));
+    %labels_test(i,:) = find(strcmp(classes, classes_test{i}));
+    %disp(sprintf('%d %s %s', i, classes_test{i}, img_name));
   end
 
   %---------------------------------------
   % See what attributes we get for the 
   % first image
   %---------------------------------------
-  for imgidx = 1:50:count_test %find(test_indices, 1);
-  att_pred = zeros(1, numatts);
-  att_actual = attributes_test(imgidx,:);
-  features = features_test(imgidx,:);
-  for i = 1:numatts
-    svm_print_string = 0;
-    [T, predict_label, accuracy, dec_values] = evalc('svmpredict(att_actual(i), features, models(i))');
-    att_pred(i) = predict_label;
-    %disp(sprintf('%u', att_pred));
-  end
-  disp(sprintf('%u', att_pred));
-  disp(sprintf('%u', att_actual));
-  %disp(sprintf('%f', features));
-  end
+    att_pred = zeros(count_test, numatts);
+    att_actual = attributes_test;
+    features = features_test;
+    precision=[];
+    for i = 1:numatts
+
+        % svm km
+        y=svmval(features,supVec{i},wVec{i},bVec{i},kernel,kerneloption);
+        y(y>0)=1;
+        y(y<=0)=0;
+        att_pred(:,i)=y;
+        disp(i)
+        disp(['positive  ',num2str(sum(y==1))])
+        disp(['precision  ',num2str(sum(y==att_actual(:,i))/length(y))])
+        precision=[precision,sum(y==att_actual(:,i))/length(y)];
+        
+%         svm_print_string = 0;
+%         disp ([num2str(sum(att_actual(:,i))),' ',num2str(sum(att_actual(:,i))/size(att_actual,1))])
+%         [predict_label, accuracy, dec_values] = svmpredict(att_actual(:,i), features, models(i));
+%         disp (sum(predict_label))
+% %        [T, predict_label, accuracy, dec_values] = evalc('svmpredict(att_actual(i), features, models(i))');
+%         att_pred(:,i) = predict_label;
+%         %disp(sprintf('%u', att_pred));
+    end
+    disp(sum(precision)/length(precision))
+  
+%   for imgidx = 1:50:count_test %find(test_indices, 1);
+%     att_pred = zeros(1, numatts);
+%     att_actual = attributes_test(imgidx,:);
+%     features = features_test(imgidx,:);
+%     for i = 1:numatts
+%         svm_print_string = 0;
+%         [T, predict_label, accuracy, dec_values] = svmpredict(att_actual(i), features, models(i));
+% %        [T, predict_label, accuracy, dec_values] = evalc('svmpredict(att_actual(i), features, models(i))');
+%         att_pred(i) = predict_label;
+%         %disp(sprintf('%u', att_pred));
+%     end
+%     %disp (sum())
+%     %disp(sprintf('%u', att_pred));
+%     %disp(sprintf('%u', att_actual));
+%     %disp(sprintf('%f', features));
+%   end
 end
