@@ -10,7 +10,7 @@
 % Notes:
 %   * The variable 'count' controls how many images are used
 %     - 1/10 of 'count' are used for testing
-%   * The variable 'numatts' controls how many attributes are
+%   * The variable 'num_atts' controls how many attributes are
 %     learned and tested
 %   * The variable 'numfeats' controls how many features are
 %     used.  When using only hog, 1000 should be used.  This
@@ -29,6 +29,8 @@ addpath('grouping/lib');
 addpath('libsvm')
 addpath('SVM-KM')
 
+global img_dir hog_dir tc_dir num_atts;
+
 gPbdir = 'out/ayahoo_test_images/processed/gPb';
 
 %---------------------------------------
@@ -36,7 +38,6 @@ gPbdir = 'out/ayahoo_test_images/processed/gPb';
 % data
 %---------------------------------------
 fname = 'data/attribute_data/ayahoo_test.txt';
-global img_dir hog_dir tc_dir;
 img_dir = 'data/ayahoo_test_images';
 hog_dir = 'out/ayahoo_test_images/processed/hog';
 tc_dir = 'out/ayahoo_test_images/processed/tc2';
@@ -89,7 +90,7 @@ fclose(fid);
 %---------------------------------------
 %numfeatures = 1384;
 numfeatures = 1000;
-numatts = size(atts, 1);
+num_atts = size(atts, 1);
 
 TRAIN = 0;
 TEST = 0;
@@ -115,7 +116,7 @@ if (TRAIN)
   end
 
   % train the classifier
-  %att_pred = zeros(count_train, numatts);
+  %att_pred = zeros(count_train, num_atts);
   
   % svm km
   % Kernel Parameters
@@ -132,7 +133,7 @@ if (TRAIN)
   wVec={};
   bVec={};
   
-  for i = 1:numatts
+  for i = 1:num_atts
     att = attributes_train(:,i);
     ratio=0.3;  % ratio of positive samples
     att_pos=find(att==1);
@@ -212,11 +213,11 @@ if (TEST)
   % See what attributes we get for the 
   % test images
   %---------------------------------------
-  att_pred = zeros(count_test, numatts);
+  att_pred = zeros(count_test, num_atts);
   att_actual = attributes_test;
   features = features_test;
   precision=[];
-  for i = 1:numatts
+  for i = 1:num_atts
     % svm km
     y=svmval(features,supVec{i},wVec{i},bVec{i},kernel,kerneloption);
     y(y>0)=1;
@@ -229,19 +230,19 @@ if (TEST)
   disp(sprintf('total precision: %1.2f', sum(precision)/length(precision)));
 end
 
-SEGMENTATION = 0;
+SEGMENTATION = 1;
 if (SEGMENTATION)
-temp = 'donkey_60.jpg';
-%img_name = regexprep(char(names_test(1)), '\.jpg', '');
-%img_fn = fullfile(img_dir, char(names_test(1)));
-img_name = regexprep(temp, '\.jpg', '');
-img_fn = fullfile(img_dir, temp);
-svm = struct;
-svm.supVec = supVec;
-svm.wVec = wVec;
-svm.bVec = bVec;
-svm.kernel = kernel;
-svm.kerneloption = kerneloption;
-[img, ucm2, mask2] = gPb(img_fn, 'out/ayahoo_test_images/processed');
-hierarchy(img, img_name, svm, mask2, ucm2, 1, '');
+  temp = 'donkey_60.jpg';
+  %img_name = regexprep(char(names_test(1)), '\.jpg', '');
+  %img_fn = fullfile(img_dir, char(names_test(1)));
+  img_name = regexprep(temp, '\.jpg', '');
+  img_fn = fullfile(img_dir, temp);
+  svm = struct;
+  svm.supVec = supVec;
+  svm.wVec = wVec;
+  svm.bVec = bVec;
+  svm.kernel = kernel;
+  svm.kerneloption = kerneloption;
+  [img, ucm2, mask2] = gPb(img_fn, 'out/ayahoo_test_images/processed');
+  hierarchy(img, img_name, svm, mask2, ucm2, 1, '', @visitor);
 end

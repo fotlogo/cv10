@@ -33,6 +33,8 @@ if ~exist(outFile, 'file')
   imwrite(ucm2, outucm2);
 end
 
-ucm2 = imread('data/101087_ucm2.bmp');
-img = imread('data/101087.jpg');
+%ucm2 = imread('data/101087_ucm2.bmp');
+%img = imread('data/101087.jpg');
+ucm2 = imread(outucm2);
+img = imread(imgFile);
 mask2 = ones(size(ucm2,1), size(ucm2,2));
