@@ -69,7 +69,7 @@ imwrite(bsxfun(@times, img, uint8(mask)), sprintf('out/img%s.jpg', path));
 %%imwrite(ucm2, sprintf('output/ucm%s.bmp', path));
 %%imwrite(labels2, cm, sprintf('output/labels%s.bmp', path));
 %%imwrite(labels, cm, sprintf('output/labels_%s.bmp', path));
-%%imwrite(mask2, sprintf('output/mask%s.bmp', path));
+%%imwrite(mask2, sprintf('out/mask%s.bmp', path));
 %%imwrite(ucm2_orig<=k, sprintf('output/logical%s.bmp', path));
 
 if (isa(visit, 'function_handle'))

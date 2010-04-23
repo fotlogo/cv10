@@ -21,8 +21,8 @@ if (size(mask, 2) == 4)
   feat_hog = hist(hog.idx(hog_ind),1:1000);
   feat_hog_norm = feat_hog/norm(feat_hog);
 
-  feat_color = hist(tc.colorim(box(2):box(4), box(1):box(3)),1: ...
-		    128);
+  feat_color = hist(tc.colorim(box(2):box(4), box(1):box(3)),...
+		    1:128);
   feat_color = sum(feat_color');
   feat_color_norm = feat_color/norm(feat_color);
 
@@ -41,15 +41,19 @@ else
     feat_hog_norm = feat_hog;
   end
 
-  feat_color = hist(tc.colorim(box(2):box(4), box(1):box(3)),1:128);
+  disp(sum(tc.colorim(:)));
+  x = double(tc.colorim).*double(mask);
+  disp(sum(x(:)));
+  feat_color = hist(x(find(x~=0)), 1:128);
   feat_color_norm = feat_color/norm(feat_color);
 
-  feat_texture = hist(tc.textonim(box(2):box(4), box(1):box(3)),1:256);
+  x = double(tc.textonim).*double(mask);
+  feat_texture = hist(x(find(x~=0)), 1:256);
   feat_texture_norm = feat_texture/norm(feat_texture);
 
 end
 
-%size(feat_hog_norm)
-%size(feat_color_norm)
-%size(feat_texture_norm)
+%disp(size(feat_hog_norm));
+%disp(size(feat_color_norm));
+%disp(size(feat_texture_norm));
 feat = [feat_hog_norm feat_color_norm feat_texture_norm];
