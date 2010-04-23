@@ -17,14 +17,17 @@
 %     should be increased as we add more fetaures.
 %   * Variables 'TRAIN' and 'TEST' control whether training and
 %     testing are executed
-%   * multiclass libsvm is currently used - but we don't need
-%     multiclass!
 %------------------------------------------------------------------
+
+% seeded random number generator before calling randpermute()
+% stored svm model so we can run without training
+% changed some print output
 
 %function [] = test()
 addpath('grouping');
 addpath('grouping/lib');
 addpath('libsvm')
+addpath('SVM-KM')
 
 gPbdir = 'out/ayahoo_test_images/processed/gPb';
 
@@ -33,14 +36,16 @@ gPbdir = 'out/ayahoo_test_images/processed/gPb';
 % data
 %---------------------------------------
 fname = 'data/attribute_data/ayahoo_test.txt';
-imdir = 'data/ayahoo_test_images';
-hogdir = 'out/ayahoo_test_images/processed/hog';
-tcdir = 'out/ayahoo_test_images/processed/tc2';
+global img_dir hog_dir tc_dir;
+img_dir = 'data/ayahoo_test_images';
+hog_dir = 'out/ayahoo_test_images/processed/hog';
+tc_dir = 'out/ayahoo_test_images/processed/tc2';
 [img_names img_classes bboxes attributes] = read_att_data(fname);
 
 % change to random of permutation here, Aibo
 count_train = 1000;
 count_test = 100;
+rand('seed', 1);
 rand_indices=randperm(length(img_names));
 train_indices=rand_indices(1:count_train);
 test_indices=rand_indices(count_train+1:count_train+count_test);
@@ -86,11 +91,14 @@ fclose(fid);
 numfeatures = 1000;
 numatts = size(atts, 1);
 
-TRAIN = 1;
-TEST = 1;
+TRAIN = 0;
+TEST = 0;
 
 features_train = zeros(count_train, numfeatures);
 %labels_train = zeros(count_train, 1);
+
+kernel='gaussian';
+kerneloption=5;
 
 %---------------------------------------
 % train a classifier for each attribute
@@ -100,9 +108,7 @@ if (TRAIN)
   % get the features for training images
   for i = 1:count_train
     img_name = regexprep(char(names_train(i)), '\.jpg', '');
-    [feat]  = get_features(imdir, img_name, ...
-				  hogdir, tcdir, ...
-				  bboxes_train(i,:));
+    [feat]  = get_features(img_name, bboxes_train(i,:));
     features_train(i,:) = feat;
     %labels_train(i,:) = find(strcmp(classes, classes_train{i}));
     %disp(sprintf('%d %s %s', i, classes_train{i}, img_name));
@@ -114,8 +120,6 @@ if (TRAIN)
   % svm km
   % Kernel Parameters
   % -------------------------------------------------------
-  kernel='gaussian';
-  kerneloption=5;
   C=100000000;
   verbose=0;
   lambda=1e-7;
@@ -144,9 +148,6 @@ if (TRAIN)
         att_temp=[att(att_pos,:);att(att_neg,:)];
     end
     
-    % libsvm
-    %model = svmtrain(att_temp, features_temp);
-
     % svm km
     att_temp(att_temp==0)=-1;
     [xsup,w,b,pos,timeps,alpha,obj]=svmclass(features_temp,att_temp,C,lambda,kernel,kerneloption,verbose);
@@ -171,7 +172,8 @@ if (TRAIN)
     %[T, predict_label, accuracy, dec_values] = evalc('svmpredict(att, feat, model)');
     %att_pred(:, i) = predict_label;
   end
-  %disp('Predicted attributes');
+  save('models.mat', 'supVec', 'wVec', 'bVec');
+%disp('Predicted attributes');
   %for i = 1:size(att_pred, 1)
   %  disp(sprintf('%u', att_pred(i,:)));
   %end
@@ -181,15 +183,16 @@ if (TRAIN)
 else
   % if we're not training, load the classifiers from disk
   disp(sprintf('loading models.mat...'));
-  %load('models.mat');
-  load('models_small.mat');
+  load('models.mat');
+  %load('models_small.mat');
 end
 
 %---------------------------------------
 % test the classifiers
 %---------------------------------------
 if (TEST)
-    disp ('Start testing ..................')
+  disp ('Start testing ..................')
+
   %---------------------------------------
   % get features for test images
   %---------------------------------------
@@ -199,9 +202,7 @@ if (TEST)
   % get the features for test images
   for i = 1:count_test
     img_name = regexprep(char(names_test(i)), '\.jpg', '');
-    [feat]  = get_features(imdir, img_name, ...
-				  hogdir, tcdir, ...
-				  bboxes_test(i,:));
+    [feat]  = get_features(img_name, bboxes_test(i,:));
     features_test(i,:) = feat;
     %labels_test(i,:) = find(strcmp(classes, classes_test{i}));
     %disp(sprintf('%d %s %s', i, classes_test{i}, img_name));
@@ -209,48 +210,38 @@ if (TEST)
 
   %---------------------------------------
   % See what attributes we get for the 
-  % first image
+  % test images
   %---------------------------------------
-    att_pred = zeros(count_test, numatts);
-    att_actual = attributes_test;
-    features = features_test;
-    precision=[];
-    for i = 1:numatts
+  att_pred = zeros(count_test, numatts);
+  att_actual = attributes_test;
+  features = features_test;
+  precision=[];
+  for i = 1:numatts
+    % svm km
+    y=svmval(features,supVec{i},wVec{i},bVec{i},kernel,kerneloption);
+    y(y>0)=1;
+    y(y<=0)=0;
+    att_pred(:,i)=y;
+    disp(sprintf('%2d: positive = %3d; precision = %1.2f', i, sum(y==1), ...
+		 sum(y==att_actual(:,i))/length(y)));
+    precision=[precision,sum(y==att_actual(:,i))/length(y)];
+  end
+  disp(sprintf('total precision: %1.2f', sum(precision)/length(precision)));
+end
 
-        % svm km
-        y=svmval(features,supVec{i},wVec{i},bVec{i},kernel,kerneloption);
-        y(y>0)=1;
-        y(y<=0)=0;
-        att_pred(:,i)=y;
-        disp(i)
-        disp(['positive  ',num2str(sum(y==1))])
-        disp(['precision  ',num2str(sum(y==att_actual(:,i))/length(y))])
-        precision=[precision,sum(y==att_actual(:,i))/length(y)];
-        
-%         svm_print_string = 0;
-%         disp ([num2str(sum(att_actual(:,i))),' ',num2str(sum(att_actual(:,i))/size(att_actual,1))])
-%         [predict_label, accuracy, dec_values] = svmpredict(att_actual(:,i), features, models(i));
-%         disp (sum(predict_label))
-% %        [T, predict_label, accuracy, dec_values] = evalc('svmpredict(att_actual(i), features, models(i))');
-%         att_pred(:,i) = predict_label;
-%         %disp(sprintf('%u', att_pred));
-    end
-    disp(sum(precision)/length(precision))
-  
-%   for imgidx = 1:50:count_test %find(test_indices, 1);
-%     att_pred = zeros(1, numatts);
-%     att_actual = attributes_test(imgidx,:);
-%     features = features_test(imgidx,:);
-%     for i = 1:numatts
-%         svm_print_string = 0;
-%         [T, predict_label, accuracy, dec_values] = svmpredict(att_actual(i), features, models(i));
-% %        [T, predict_label, accuracy, dec_values] = evalc('svmpredict(att_actual(i), features, models(i))');
-%         att_pred(i) = predict_label;
-%         %disp(sprintf('%u', att_pred));
-%     end
-%     %disp (sum())
-%     %disp(sprintf('%u', att_pred));
-%     %disp(sprintf('%u', att_actual));
-%     %disp(sprintf('%f', features));
-%   end
+SEGMENTATION = 0;
+if (SEGMENTATION)
+temp = 'donkey_60.jpg';
+%img_name = regexprep(char(names_test(1)), '\.jpg', '');
+%img_fn = fullfile(img_dir, char(names_test(1)));
+img_name = regexprep(temp, '\.jpg', '');
+img_fn = fullfile(img_dir, temp);
+svm = struct;
+svm.supVec = supVec;
+svm.wVec = wVec;
+svm.bVec = bVec;
+svm.kernel = kernel;
+svm.kerneloption = kerneloption;
+[img, ucm2, mask2] = gPb(img_fn, 'out/ayahoo_test_images/processed');
+hierarchy(img, img_name, svm, mask2, ucm2, 1, '');
 end

@@ -20,13 +20,13 @@
 % figure;imshow(mask,[]);colormap(jet);
 %
 %-----------------------------------------------------------
-function [] = hierarchy(img, features, mask2, ucm2_orig, depth, path, visit)
+function [] = hierarchy(img, img_name, svm, mask2, ucm2_orig, depth, path, visit)
 
 %---------------------------------------
 % For testing, return at a maximum
 % depth
 %---------------------------------------
-if depth > 5,
+if depth > 3,
   return;
 end
 
@@ -71,14 +71,14 @@ imwrite(bsxfun(@times, img, uint8(mask)), sprintf('output/img%s.jpg', path));
 %imwrite(ucm2_orig<=k, sprintf('output/logical%s.bmp', path));
 
 if (visit)
-  visit(img, features, mask, ucm);
+  visit(img, img_name, svm, mask, ucm);
 end
 
 if (size(label_vec, 1) > 1),
   for i=1:size(label_vec, 1),
     sub_mask2 = (labels2 == label_vec(i));
     sub_mask2 = bsxfun(@times, sub_mask2, mask2);
-    hierarchy(img, features, sub_mask2, ucm2_orig, depth+1,...
+    hierarchy(img, img_name, svm, sub_mask2, ucm2_orig, depth+1,...
 	      sprintf('%s%d', path, i), visit);
   end
 end
