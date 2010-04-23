@@ -3,6 +3,11 @@ global num_atts;
 
 img_masked = bsxfun(@times, img, uint8(mask));
 [features]  = get_features(img_name, mask);
+%disp(sprintf('%f', features(1:20:end, 1:20:end)'));
+
+if (nnz(features) == 0)
+  disp('No features at all!  Why is this working?');
+end
 
 %---------------------------------------
 % See what attributes we get for the 
@@ -18,6 +23,7 @@ for i = 1:num_atts
   %disp(sprintf('%2d: positive = %3d; precision = %1.2f', i, sum(y==1), ...
   %  sum(y==att_actual(:,i))/length(y)));
 end
-disp(sprintf('%u', att_pred));
+st = sprintf('%u', att_pred);
+disp(['atts: ' st]);
 
 

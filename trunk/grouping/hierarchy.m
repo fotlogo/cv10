@@ -21,15 +21,16 @@
 %
 %-----------------------------------------------------------
 function [] = hierarchy(img, img_name, svm, mask2, ucm2_orig, depth, path, visit)
-disp(sprintf('hierarchy %s', path));
 
 %---------------------------------------
 % For testing, return at a maximum
 % depth
 %---------------------------------------
-if depth > 4,
+if depth == 0,
   return;
 end
+
+disp(sprintf('hierarchy %s', path));
 
 % Mask out original size ucm
 mask = mask2(3:2:end, 3:2:end);
@@ -64,7 +65,7 @@ label_vec(label_vec == 0) = [];
 %	     max(label_vec)));
 
 cm = jet(min(256, max(unique(labels2))));
-%imwrite(bsxfun(@times, img, uint8(mask)), sprintf('output/img%s.jpg', path));
+imwrite(bsxfun(@times, img, uint8(mask)), sprintf('out/img%s.jpg', path));
 %%imwrite(ucm2, sprintf('output/ucm%s.bmp', path));
 %%imwrite(labels2, cm, sprintf('output/labels%s.bmp', path));
 %%imwrite(labels, cm, sprintf('output/labels_%s.bmp', path));
@@ -79,7 +80,7 @@ if (size(label_vec, 1) > 1),
   for i=1:size(label_vec, 1),
     sub_mask2 = (labels2 == label_vec(i));
     sub_mask2 = bsxfun(@times, sub_mask2, mask2);
-    hierarchy(img, img_name, svm, sub_mask2, ucm2_orig, depth+1,...
+    hierarchy(img, img_name, svm, sub_mask2, ucm2_orig, depth-1,...
 	      sprintf('%s%d', path, i), visit);
   end
 end

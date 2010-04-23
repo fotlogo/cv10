@@ -23,7 +23,12 @@
 % stored svm model so we can run without training
 % changed some print output
 
-%function [] = test()
+function [] = test(depth)
+
+if (nargin < 1)
+  depth = 2;
+end
+
 addpath('grouping');
 addpath('grouping/lib');
 addpath('libsvm')
@@ -93,7 +98,8 @@ numfeatures = 1000;
 num_atts = size(atts, 1);
 
 TRAIN = 0;
-TEST = 0;
+TEST = 1;
+SEGMENTATION = 0;
 
 features_train = zeros(count_train, numfeatures);
 %labels_train = zeros(count_train, 1);
@@ -227,12 +233,25 @@ if (TEST)
 		 sum(y==att_actual(:,i))/length(y)));
     precision=[precision,sum(y==att_actual(:,i))/length(y)];
   end
+  %st = arrayfun(@(x)sprintf('%u', x), att_pred);
+  %disp(st);
+  %disp(atts);
   disp(sprintf('total precision: %1.2f', sum(precision)/length(precision)));
 end
 
-SEGMENTATION = 1;
 if (SEGMENTATION)
-  temp = 'donkey_60.jpg';
+  % images ~5K size
+  %temp = 'donkey_60.jpg';
+  %temp = 'jetski_158.jpg';
+  
+  % images ~10K size
+  %temp = 'mug_248.jpg';
+  %temp = 'goat_361.jpg';
+  
+  % images ~20K size
+  temp = 'bag_377.jpg';
+  %temp = 'monkey_220.jpg';
+  
   %img_name = regexprep(char(names_test(1)), '\.jpg', '');
   %img_fn = fullfile(img_dir, char(names_test(1)));
   img_name = regexprep(temp, '\.jpg', '');
@@ -244,5 +263,5 @@ if (SEGMENTATION)
   svm.kernel = kernel;
   svm.kerneloption = kerneloption;
   [img, ucm2, mask2] = gPb(img_fn, 'out/ayahoo_test_images/processed');
-  hierarchy(img, img_name, svm, mask2, ucm2, 1, '', @visitor);
+  hierarchy(img, img_name, svm, mask2, ucm2, depth, '', @visitor);
 end
