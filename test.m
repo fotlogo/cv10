@@ -23,18 +23,18 @@
 % stored svm model so we can run without training
 % changed some print output
 
-function [] = test(depth)
+%function [] = test(depth)
 
-if (nargin < 1)
-  depth = 2;
-end
+%if (nargin < 1)
+%  depth = 2;
+%end
 
 addpath('grouping');
 addpath('grouping/lib');
 addpath('libsvm')
 addpath('SVM-KM')
 
-global img_dir hog_dir tc_dir num_atts;
+global img_dir hog_dir tc_dir num_atts atts;
 
 gPbdir = 'out/ayahoo_test_images/processed/gPb';
 
@@ -48,10 +48,10 @@ hog_dir = 'out/ayahoo_test_images/processed/hog';
 tc_dir = 'out/ayahoo_test_images/processed/tc2';
 [img_names img_classes bboxes attributes] = read_att_data(fname);
 
-TRAIN = 1;
-TEST = 1;
-SEGMENTATION = 0;
-count_train = 100;
+TRAIN = 0;
+TEST = 0;
+SEGMENTATION = 1;
+count_train = 300;
 count_test = 10;
 
 % change to random of permutation here, Aibo
@@ -119,6 +119,8 @@ if (TRAIN)
     [feat]  = get_features(img_name, bboxes_train(i,:));
     num_features = size(feat, 2);
     %features_train(i,:) = feat;
+    disp(size(features_train));
+    disp(size(feat));
     features_train = [features_train; feat];
 
     %labels_train(i,:) = find(strcmp(classes, classes_train{i}));
@@ -255,8 +257,8 @@ if (SEGMENTATION)
   %temp = 'goat_361.jpg';
   
   % images ~20K size
-  temp = 'bag_377.jpg';
-  %temp = 'monkey_220.jpg';
+  %temp = 'bag_377.jpg';
+  temp = 'monkey_220.jpg';
   
   %img_name = regexprep(char(names_test(1)), '\.jpg', '');
   %img_fn = fullfile(img_dir, char(names_test(1)));
