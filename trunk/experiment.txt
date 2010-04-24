@@ -1,0 +1,10 @@
+
+
+Data vision final project
+
+Attributes classification:
+
+Training, Testing, Gaussian, ratio, total precision, pos precision, neg precision
+2000, 500, 5, 0.3, 0.86, 0.60, 0.88
+2000, 500, 1, 0.3, 0.86, 0.60, 0.88
+ 
