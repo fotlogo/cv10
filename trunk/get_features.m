@@ -32,7 +32,7 @@ if (size(mask, 2) == 4)
 
 else
   % This is the case where the mask is a true mask.
-  hog_ind = logical(arrayfun(@(x,y)mask(y,x), uint8(hog.x), uint8(hog.y)));
+  hog_ind = logical(arrayfun(@(x,y) mask(y,x), floor(hog.x), floor(hog.y)));
 
   feat_hog = hist(hog.idx(hog_ind),1:1000);
   if (nnz(feat_hog) > 0)

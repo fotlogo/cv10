@@ -5,3 +5,8 @@ TODO list:
 3. cut off the attributes with so few positive training samples
 4. use voc2008 to train, it is much bigger
 5. calculate the histogram of the hierarchy
+
+
+Bug so far:
+
+1. getfeatures.m uint8(hog.x) 
