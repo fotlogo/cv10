@@ -1,0 +1,20 @@
+# Condor job description file for Matlab
+ 
++Group              = "GRAD"
++Project            = "INSTRUCTIONAL"
++ProjectDescription = "CS395T: Computer Vision Course Project"
+
+Universe    = vanilla
+Requirements = Arch == "x86_64" && InMastodon
+GetEnv = true
+
+Executable = /lusr/bin/matlab
+Arguments  = -nodisplay
+Input  = /u/rliu/CV/final/multiSegsTimes.m
+Log    = /u/rliu/CV/final/all10i.log
+Output = /u/rliu/CV/final/all10i.out
+
+Notification = Never
+Error  = matlab.stderr-$(Cluster).$(Process).txt
+
+Queue 1

@@ -29,7 +29,7 @@
 %  depth = 2;
 %end
 
-clear
+% clear
 
 addpath('grouping');
 addpath('grouping/lib');
@@ -50,9 +50,9 @@ hog_dir = 'out/ayahoo_test_images/processed/hog';
 tc_dir = 'out/ayahoo_test_images/processed/tc2';
 [img_names img_classes bboxes attributes] = read_att_data(fname);
 
-TRAIN = 1;
-TEST = 1;
-SEGMENTATION = 0;
+TRAIN = 0;
+TEST = 0;
+SEGMENTATION = 1;
 FEATURE_TRAIN=0;
 FEATURE_TEST=0;
 count_train = 2000;
