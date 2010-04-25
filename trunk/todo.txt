@@ -1,0 +1,7 @@
+TODO list:
+
+1. check whether the feature coordinate and segmentation coordinate are matched(each row in image is y, column is x)
+2. run experiment on condor to tune the training parameter
+3. cut off the attributes with so few positive training samples
+4. use voc2008 to train, it is much bigger
+5. calculate the histogram of the hierarchy
