@@ -10,9 +10,9 @@ GetEnv = true
 
 Executable = /lusr/bin/matlab
 Arguments  = -nodisplay
-Input  = /u/atian/cv/final/code/test.m
-Log    = /u/atian/cv/final/code/condor/all10i.log
-Output = /u/atian/cv/final/code/condor/all10i.out
+Input  = /u/edwardsj/classes/cs395T_vision/project/cv10/test.m
+Log    = /u/edwardsj/classes/cs395T_vision/project/cv10/condor/testi.log
+Output = /u/edwardsj/classes/cs395T_vision/project/cv10/condor/testi.out
 
 Notification = Never
 Error  = matlab.stderr-$(Cluster).$(Process).txt

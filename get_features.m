@@ -32,7 +32,23 @@ if (size(mask, 2) == 4)
 
 else
   % This is the case where the mask is a true mask.
+  %box = [0 280 210 344];
+  %hog_ind = hog.x >= box(1) & hog.y >= box(2) & hog.x <= box(3) & ...
+  %	    hog.y <= box(4);
+  %disp(hog_ind(1:10));
+  %disp(size(hog_ind(:)));
+  %disp(nnz(hog_ind(:)));
   hog_ind = logical(arrayfun(@(x,y) mask(y,x), floor(hog.x), floor(hog.y)));
+
+  %disp(size(hog.x));
+  %disp(hog_ind(1:10));
+  %disp(min(hog_ind(:)));
+  %disp(max(hog_ind(:)));
+  %disp(hog.x(1:10));
+  %disp(hog.y(1:10));
+  %disp(sum(hog.idx));
+  %disp(sum(hog.idx(hog_ind)));
+  %disp(sum(mask(:)));
 
   feat_hog = hist(hog.idx(hog_ind),1:1000);
   if (nnz(feat_hog) > 0)
@@ -41,9 +57,9 @@ else
     feat_hog_norm = feat_hog;
   end
 
-  disp(sum(tc.colorim(:)));
+  %disp(sum(tc.colorim(:)));
   x = double(tc.colorim).*double(mask);
-  disp(sum(x(:)));
+  %disp(sum(x(:)));
   feat_color = hist(x(find(x~=0)), 1:128);
   feat_color_norm = feat_color/norm(feat_color);
 

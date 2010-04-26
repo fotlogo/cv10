@@ -1,11 +1,13 @@
 universe = vanilla
 
-#executable = /lusr/bin/matlab
-#arguments = -r extract
+executable = /lusr/bin/matlab
+arguments = -r extract
 
 #executable = /bin/sh
-executable = /lusr/bin/bash
-arguments = extract.sh 
+#executable = /lusr/bin/bash
+#arguments = extract.sh 
+
+getenv = true
 
 Error = err.$(Process)
 #Input = in.$(Process)
