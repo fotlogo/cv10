@@ -31,28 +31,31 @@
 
 % clear
 
-addpath('grouping');
-addpath('grouping/lib');
-addpath('libsvm')
-addpath('SVM-KM')
+BasePath='/u/atian/cv/final/code/';
+
+addpath(BasePath);
+addpath([BasePath,'grouping']);
+addpath([BasePath,'grouping/lib']);
+addpath([BasePath,'libsvm'])
+addpath([BasePath,'SVM-KM'])
 
 global img_dir hog_dir tc_dir num_atts atts;
 
-gPbdir = 'out/ayahoo_test_images/processed/gPb';
+gPbdir = [BasePath,'out/ayahoo_test_images/processed/gPb'];
 
 %---------------------------------------
 % get attributes and bounding boxes for
 % data
 %---------------------------------------
-fname = 'data/attribute_data/ayahoo_test.txt';
-img_dir = 'data/ayahoo_test_images';
-hog_dir = 'out/ayahoo_test_images/processed/hog';
-tc_dir = 'out/ayahoo_test_images/processed/tc2';
+fname = [BasePath,'data/attribute_data/ayahoo_test.txt'];
+img_dir = [BasePath,'data/ayahoo_test_images'];
+hog_dir = [BasePath,'out/ayahoo_test_images/processed/hog'];
+tc_dir = [BasePath,'out/ayahoo_test_images/processed/tc2'];
 [img_names img_classes bboxes attributes] = read_att_data(fname);
 
-TRAIN = 0;
-TEST = 0;
-SEGMENTATION = 1;
+TRAIN = 1;
+TEST = 1;
+SEGMENTATION = 0;
 FEATURE_TRAIN=0;
 FEATURE_TEST=0;
 count_train = 2000;
@@ -61,7 +64,7 @@ count_test = 500;
 % change to random of permutation here, Aibo
 rand('seed', 1);
 
-ratio=0.3;  % ratio of positive samples for training
+ratio=0.5  % ratio of positive samples for training
 
 rand_indices=randperm(length(img_names));
 train_indices=rand_indices(1:count_train);
@@ -87,7 +90,7 @@ attributes_test = attributes(test_indices,:);
 %---------------------------------------
 % get the attribute names
 %---------------------------------------
-fid = fopen('data/attribute_data/attribute_names.txt');
+fid = fopen([BasePath,'data/attribute_data/attribute_names.txt']);
 [atts] = textscan(fid, '%s', 'delimiter', '\n');
 atts = atts{1};
 fclose(fid);
@@ -95,7 +98,7 @@ fclose(fid);
 %---------------------------------------
 % get the class names
 %---------------------------------------
-fid = fopen('data/attribute_data/class_names.txt');
+fid = fopen([BasePath,'data/attribute_data/class_names.txt']);
 [classes] = textscan(fid, '%s', 'delimiter', '\n');
 classes = classes{1};
 fclose(fid);
@@ -116,7 +119,7 @@ features_train = [];
 % SVM KM Kernel Parameters
 % -------------------------------------------------------
 kernel='gaussian';
-kerneloption=1;
+kerneloption=1
 C=100000000;
 verbose=0;
 lambda=1e-7;
@@ -140,10 +143,10 @@ if (TRAIN==1)
             %labels_train(i,:) = find(strcmp(classes, classes_train{i}));
             %disp(sprintf('%d %s %s', i, classes_train{i}, img_name));
         end
-        save('features_train','features_train')
+        save([BasePath,'features_train'],'features_train')
         disp('Extract features done...')
     else
-        load('features_train')
+        load([BasePath,'features_train'])
         disp('Load features done...')
     end
     num_features=size(features_train,2);
@@ -198,7 +201,7 @@ if (TRAIN==1)
     fprintf('.')
   end
   fprintf('\n')
-  save('models.mat', 'supVec', 'wVec', 'bVec');
+  %save([BasePath,'models.mat'], 'supVec', 'wVec', 'bVec');
   disp('SVM training done...')
 %disp('Predicted attributes');
   %for i = 1:size(att_pred, 1)
@@ -210,7 +213,7 @@ if (TRAIN==1)
 else
   % if we're not training, load the classifiers from disk
   disp(sprintf('SVM loading models.mat...'));
-  load('models.mat');
+  load([BasePath,'models.mat']);
   %load('models_small.mat');
 end
 
@@ -236,10 +239,10 @@ if (TEST==1)
             %labels_test(i,:) = find(strcmp(classes, classes_test{i}));
             %disp(sprintf('%d %s %s', i, classes_test{i}, img_name));
         end
-        save('features_test','features_test')
+        save([BasePath,'features_test'],'features_test')
         disp('Extract features done...')
   else
-      load('features_test')
+      load([BasePath,'features_test'])
       disp('Load features done...')
   end
   num_features=size(features_test,2);
