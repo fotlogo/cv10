@@ -1,4 +1,5 @@
-function [attPred,attConf] = visitor(img, img_name, svm, mask, ucm)
+function [attPred,attConf] = visitor(img, img_name, svm, mask, ucm, ...
+				     path)
 global num_atts atts atts_mask;
 
 img_masked = bsxfun(@times, img, uint8(mask));
@@ -39,4 +40,13 @@ att_sort=sort_idx(sort_value>0);
 %att_pred
 %sort_value
 atts(att_sort)
+sort_value(sort_value>0)
+
+fid = fopen(sprintf('out/atts%s.txt', path), 'w');
+atts_sorted = atts(att_sort);
+sort_value = sort_value(sort_value>0);
+for i=1:size(att_sort(:))
+  fprintf(fid, '%1.3f %s\n', sort_value(i), atts_sorted{i});
+end
+fclose(fid);
 

@@ -31,7 +31,8 @@
 
 % clear
 
-BasePath='/u/atian/cv/final/code/';
+%BasePath='/u/atian/cv/final/code/';
+BasePath='/u/edwardsj/classes/cs395T_vision/project/cv10/';
 
 addpath(BasePath);
 addpath([BasePath,'grouping']);
@@ -143,6 +144,7 @@ if (TRAIN==1)
             img_name = regexprep(char(names_train(i)), '\.jpg', '');
             [feat]  = get_features(img_name, bboxes_train(i,:));
             %num_features = size(feat, 2);
+	    disp(img_name);
             features_train = [features_train; feat];
 
             %labels_train(i,:) = find(strcmp(classes, classes_train{i}));
@@ -231,8 +233,8 @@ end
 atts_mask=logical(atts_mask);
 
 % output attributes
-atts_mask
-atts(logical(atts_mask))
+fprintf('atts_mask = %s\n', sprintf('%u', atts_mask'));
+disp(atts(logical(atts_mask)));
 
 %---------------------------------------
 % test the classifiers
@@ -340,8 +342,8 @@ if (SEGMENTATION)
   %temp = 'goat_361.jpg';
   
   % images ~20K size
-  %temp = 'bag_377.jpg';
-  temp = 'monkey_220.jpg';
+  temp = 'bag_377.jpg';
+  %temp = 'monkey_220.jpg';
   
   %img_name = regexprep(char(names_test(1)), '\.jpg', '');
   %img_fn = fullfile(img_dir, char(names_test(1)));

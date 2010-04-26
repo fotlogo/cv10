@@ -80,7 +80,7 @@ imwrite(bsxfun(@times, img, uint8(mask)), sprintf('out/img%s.jpg', path));
 %%imwrite(ucm2_orig<=k, sprintf('output/logical%s.bmp', path));
 
 if (isa(visit, 'function_handle'))
-  [attPred,attConf]=visit(img, img_name, svm, mask, ucm);
+  [attPred,attConf]=visit(img, img_name, svm, mask, ucm, path);
 end
 
 % save attributes hierarchy
