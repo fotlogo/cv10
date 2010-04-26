@@ -327,7 +327,10 @@ if (TEST==1)
 %   disp(sprintf('total precision: %1.2f', sum(precision)/length(precision)));
 end
 
+
+
 if (SEGMENTATION)
+
   % images ~5K size
   %temp = 'donkey_60.jpg';
   %temp = 'jetski_158.jpg';
@@ -351,5 +354,6 @@ if (SEGMENTATION)
   svm.kernel = kernel;
   svm.kerneloption = kerneloption;
   [img, ucm2, mask2] = gPb(img_fn, 'out/ayahoo_test_images/processed');
-  hierarchy(img, img_name, svm, mask2, ucm2, depth, '', @visitor);
+  % attStruct is the structure with attributes hierarchy
+  attStruct=hierarchy(img, img_name, svm, mask2, ucm2, depth, '', @visitor);
 end
