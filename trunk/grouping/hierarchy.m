@@ -20,13 +20,20 @@
 % figure;imshow(mask,[]);colormap(jet);
 %
 %-----------------------------------------------------------
-function [] = hierarchy(img, img_name, svm, mask2, ucm2_orig, depth, path, visit)
+function attStruct = hierarchy(img, img_name, svm, mask2, ucm2_orig, depth, path, visit)
 
 %---------------------------------------
 % For testing, return at a maximum
 % depth
 %---------------------------------------
 if depth == 0,
+    % save attributes hierarchy
+    attStruct.level=depth;
+    attStruct.child={};
+    attStruct.childNum=0;
+    attStruct.attribute=0;
+    attStruct.confidence=0;
+
   return;
 end
 
@@ -73,14 +80,25 @@ imwrite(bsxfun(@times, img, uint8(mask)), sprintf('out/img%s.jpg', path));
 %%imwrite(ucm2_orig<=k, sprintf('output/logical%s.bmp', path));
 
 if (isa(visit, 'function_handle'))
-  visit(img, img_name, svm, mask, ucm);
+  [attPred,attConf]=visit(img, img_name, svm, mask, ucm);
 end
 
+% save attributes hierarchy
+attStruct.level=depth;
+attStruct.child={};
+attStruct.childNum=0;
+attStruct.attribute=attPred;
+attStruct.confidence=attConf;
+
 if (size(label_vec, 1) > 1),
+
+  % save attributes hierarchy
+  attStruct.childNum=size(label_vec,1);
+
   for i=1:size(label_vec, 1),
     sub_mask2 = (labels2 == label_vec(i));
     sub_mask2 = bsxfun(@times, sub_mask2, mask2);
-    hierarchy(img, img_name, svm, sub_mask2, ucm2_orig, depth-1,...
+    attStruct.child{i}=hierarchy(img, img_name, svm, sub_mask2, ucm2_orig, depth-1,...
 	      sprintf('%s%d', path, i), visit);
   end
 end
