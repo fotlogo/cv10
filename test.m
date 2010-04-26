@@ -39,7 +39,7 @@ addpath([BasePath,'grouping/lib']);
 addpath([BasePath,'libsvm'])
 addpath([BasePath,'SVM-KM'])
 
-global img_dir hog_dir tc_dir num_atts atts;
+global img_dir hog_dir tc_dir num_atts atts atts_mask;
 
 gPbdir = [BasePath,'out/ayahoo_test_images/processed/gPb'];
 
@@ -53,9 +53,9 @@ hog_dir = [BasePath,'out/ayahoo_test_images/processed/hog'];
 tc_dir = [BasePath,'out/ayahoo_test_images/processed/tc2'];
 [img_names img_classes bboxes attributes] = read_att_data(fname);
 
-TRAIN = 1;
-TEST = 1;
-SEGMENTATION = 0;
+TRAIN = 0;
+TEST = 0;
+SEGMENTATION = 1;
 FEATURE_TRAIN=0;
 FEATURE_TEST=0;
 count_train = 2000;
@@ -65,6 +65,8 @@ count_test = 500;
 rand('seed', 1);
 
 ratio=0.5  % ratio of positive samples for training
+att_train_thre=50; % lower threshold of training samples for each attribute
+
 
 rand_indices=randperm(length(img_names));
 train_indices=rand_indices(1:count_train);
@@ -110,6 +112,9 @@ fclose(fid);
 %num_features = 1384;
 %num_features = 1000;
 num_atts = size(atts, 1);
+
+% attributes mask
+atts_mask=ones(size(atts));
 
 %features_train = zeros(count_train, num_features);
 features_train = [];
@@ -166,6 +171,12 @@ if (TRAIN==1)
   for i = 1:num_atts
     att = attributes_train(:,i);
     att_pos=find(att==1);
+    
+    % change attributes mask
+    if length(att_pos)<att_train_thre
+      atts_mask(i)=0;
+    end
+
     att_neg=find(att==0);
     if ((length(att_neg)/length(att_pos))>((1-ratio)/ratio))
         att_neg=att_neg(1:floor(length(att_pos)/ratio*(1-ratio)));
@@ -201,7 +212,7 @@ if (TRAIN==1)
     fprintf('.')
   end
   fprintf('\n')
-  %save([BasePath,'models.mat'], 'supVec', 'wVec', 'bVec');
+  save([BasePath,'models.mat'], 'supVec', 'wVec', 'bVec','atts_mask');
   disp('SVM training done...')
 %disp('Predicted attributes');
   %for i = 1:size(att_pred, 1)
@@ -216,6 +227,12 @@ else
   load([BasePath,'models.mat']);
   %load('models_small.mat');
 end
+
+atts_mask=logical(atts_mask);
+
+% output attributes
+atts_mask
+atts(logical(atts_mask))
 
 %---------------------------------------
 % test the classifiers
@@ -299,6 +316,10 @@ if (TEST==1)
   disp(['Total average precision ',num2str(mean(total_precision))])
   disp(['Total pos average precision ',num2str(mean(total_pos_precision(total_pos_precision>=0)))])
   disp(['Total neg average precision ',num2str(mean(total_neg_precision(total_neg_precision>=0)))])
+  disp(['Total average precision after mask ',num2str(mean(total_precision(logical(atts_mask))))])
+  disp(['Total pos average precision after mask ',num2str(mean(total_pos_precision(logical((total_pos_precision>=0).*atts_mask'))))])
+  disp(['Total neg average precision after mask ',num2str(mean(total_neg_precision(logical((total_neg_precision>=0).*atts_mask'))))])
+
   
   %st = arrayfun(@(x)sprintf('%u', x), att_pred);
   %disp(st);

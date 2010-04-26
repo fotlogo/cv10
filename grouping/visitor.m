@@ -1,5 +1,5 @@
 function [] = visitor(img, img_name, svm, mask, ucm)
-global num_atts atts;
+global num_atts atts atts_mask;
 
 img_masked = bsxfun(@times, img, uint8(mask));
 [features]  = get_features(img_name, mask);
@@ -24,6 +24,7 @@ for i = 1:num_atts
   %  sum(y==att_actual(:,i))/length(y)));
 end
 
+att_pred=att_pred.*atts_mask';
 att_pred(att_pred<=0)=0;
 [sort_value,sort_idx]=sort(att_pred,'descend');
 att_sort=sort_idx(sort_value>0);
