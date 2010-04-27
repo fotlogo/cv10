@@ -5,6 +5,8 @@ global num_atts atts atts_mask;
 img_masked = bsxfun(@times, img, uint8(mask));
 [features]  = get_features(img_name, mask);
 
+figure,imshow(double(mask))
+
 if (nnz(features) == 0)
   disp('No features at all!  Why is this working?');
 end

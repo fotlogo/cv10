@@ -31,8 +31,8 @@
 
 % clear
 
-%BasePath='/u/atian/cv/final/code/';
-BasePath='/u/edwardsj/classes/cs395T_vision/project/cv10/';
+BasePath='/u/atian/cv/final/code/';
+%BasePath='/u/edwardsj/classes/cs395T_vision/project/cv10/';
 
 addpath(BasePath);
 addpath([BasePath,'grouping']);
@@ -40,10 +40,12 @@ addpath([BasePath,'grouping/lib']);
 addpath([BasePath,'libsvm'])
 addpath([BasePath,'SVM-KM'])
 
-global img_dir hog_dir tc_dir num_atts atts atts_mask;
+global img_dir hog_dir tc_dir num_atts atts atts_mask kernel kerneloption C verbose lambda;
+
 
 %image_set = 'ayahoo_test';
 image_set = 'apascal';
+
 
 gPbdir = [BasePath,'out/',image_set,'_images/processed/gPb'];
 
@@ -70,13 +72,13 @@ names_test = img_names;
 classes_test = img_classes;
 bboxes_test = bboxes;
 attributes_test = attributes;
-count_test = size(names_train(:));
+count_test = size(names_test(:));
 
 TRAIN = 1;
 TEST = 1;
 SEGMENTATION = 0;
 FEATURE_TRAIN=0;
-FEATURE_TEST=1;
+FEATURE_TEST=0;
 %count_train = 2000;
 %count_test = 500;
 
@@ -144,7 +146,7 @@ kerneloption=1
 C=100000000;
 verbose=0;
 lambda=1e-7;
-nbclass=2;
+%nbclass=2;
 
 
 %---------------------------------------
@@ -172,6 +174,12 @@ if (TRAIN==1)
         disp('Load features done...')
     end
     num_features=size(features_train,2);
+    
+    % remove bad features
+    temp1=sum(features_train,2);
+    temp2=(temp1>=0);
+    features_train=features_train(temp2,:);
+    attributes_train=attributes_train(temp2,:);
 
   % train the classifier
   %att_pred = zeros(count_train, num_atts);
@@ -197,7 +205,8 @@ if (TRAIN==1)
 
     att_neg=find(att==0);
     if ((length(att_neg)/length(att_pos))>((1-ratio)/ratio))
-        att_neg=att_neg(1:floor(length(att_pos)/ratio*(1-ratio)));
+        rand_temp=randperm(floor(length(att_pos)/ratio*(1-ratio)));
+        att_neg=att_neg(rand_temp);
     end
     if length(att_pos)==0
         features_temp=features_train;
@@ -232,7 +241,7 @@ if (TRAIN==1)
     fprintf('.')
   end
   fprintf('\n')
-  save([BasePath,'models.mat'], 'supVec', 'wVec', 'bVec','atts_mask');
+  %save([BasePath,'models.mat'], 'supVec', 'wVec', 'bVec','atts_mask');
   disp('SVM training done...')
 %disp('Predicted attributes');
   %for i = 1:size(att_pred, 1)
@@ -283,6 +292,13 @@ if (TEST==1)
       disp('Load features done...')
   end
   num_features=size(features_test,2);
+  
+    % remove bad features
+    temp1=sum(features_test,2);
+    temp2=(temp1>=0);
+    features_test=features_test(temp2,:);
+    attributes_test=attributes_test(temp2,:);
+
 
   %---------------------------------------
   % See what attributes we get for the 
@@ -360,6 +376,9 @@ if (SEGMENTATION)
   %temp = 'goat_361.jpg';
   
   % images ~20K size
+  %temp = 'bag_377.jpg';
+  %temp = 'monkey_220.jpg'; 
+  %temp = 'goat_12.jpg';
   temp = 'bag_377.jpg';
   %temp = 'monkey_220.jpg';
   

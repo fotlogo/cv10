@@ -34,7 +34,7 @@ clear l img;
 simFile = strcat(outFile, '_sim.tmp');
 %system(sprintf('/projects/vision/6/jaechul/h-seg/grouping/lib/segment64 -image %s -smatrixfile %s -readlattice true -latticefile %s -dthresh 5', imgFile, simFile, latFile));
 %fprintf('/u/edwardsj/classes/cs395T_vision/project/test/lib/segment32 -image %s -smatrixfile %s -readlattice true -latticefile %s -dthresh 5', imgFile, simFile, latFile);
-system(sprintf('F:/course/computerVision/final/code/grouping/lib/segment32 -image %s -smatrixfile %s -readlattice true -latticefile %s -dthresh 5', imgFile, simFile, latFile));
+system(sprintf('/u/atian/cv/final/code/grouping/lib/segment32 -image %s -smatrixfile %s -readlattice true -latticefile %s -dthresh 5', imgFile, simFile, latFile));
 delete(latFile);
 delete(imgFile);
 
