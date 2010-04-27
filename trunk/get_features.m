@@ -52,6 +52,7 @@ else
   %disp(sum(mask(:)));
 
   feat_hog = hist(hog.idx(hog_ind),1:1000);
+  disp(sum(feat_hog))
   if (nnz(feat_hog) > 0)
     feat_hog_norm = feat_hog/norm(feat_hog);
   else
@@ -64,7 +65,9 @@ else
   feat_color = hist(x(find(x~=0)), 1:128);
   feat_color_norm = feat_color/norm(feat_color);
 
+  disp(sum(tc.textonim(:)));
   x = double(tc.textonim).*double(mask);
+  disp(sum(x(:)));
   feat_texture = hist(x(find(x~=0)), 1:256);
   feat_texture_norm = feat_texture/norm(feat_texture);
 
