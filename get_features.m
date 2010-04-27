@@ -38,6 +38,7 @@ else
   %disp(hog_ind(1:10));
   %disp(size(hog_ind(:)));
   %disp(nnz(hog_ind(:)));
+  
   hog_ind = logical(arrayfun(@(x,y) mask(y,x), floor(hog.x), floor(hog.y)));
 
   %disp(size(hog.x));

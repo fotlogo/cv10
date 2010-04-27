@@ -4,7 +4,6 @@ global num_atts atts atts_mask;
 
 img_masked = bsxfun(@times, img, uint8(mask));
 [features]  = get_features(img_name, mask);
-%disp(sprintf('%f', features(1:20:end, 1:20:end)'));
 
 if (nnz(features) == 0)
   disp('No features at all!  Why is this working?');
