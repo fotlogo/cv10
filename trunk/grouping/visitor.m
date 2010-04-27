@@ -5,7 +5,7 @@ global num_atts atts atts_mask;
 img_masked = bsxfun(@times, img, uint8(mask));
 [features]  = get_features(img_name, mask);
 
-figure,imshow(double(mask))
+%figure,imshow(double(mask))
 
 if (nnz(features) == 0)
   disp('No features at all!  Why is this working?');
@@ -43,7 +43,8 @@ att_sort=sort_idx(sort_value>0);
 atts(att_sort)
 sort_value(sort_value>0)
 
-fid = fopen(sprintf('out/atts%s.txt', path), 'w');
+base_name = regexprep(char(img_name), '.jpg', '');
+fid = fopen(sprintf('out/%s/atts%s.txt', base_name, path), 'w');
 atts_sorted = atts(att_sort);
 sort_value = sort_value(sort_value>0);
 for i=1:size(att_sort(:))

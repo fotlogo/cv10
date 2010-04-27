@@ -75,10 +75,10 @@ bboxes_test = bboxes;
 attributes_test = attributes;
 count_test = size(names_test(:));
 
-TRAIN = 1;
-TEST = 1;
-SEGMENTATION = 0;
-FEATURE_TRAIN=1;
+TRAIN = 0;
+TEST = 0;
+SEGMENTATION = 1;
+FEATURE_TRAIN=0;
 FEATURE_TEST=0;
 %count_train = 2000;
 %count_test = 500;
@@ -380,8 +380,17 @@ if (SEGMENTATION)
   %temp = 'bag_377.jpg';
   %temp = 'monkey_220.jpg'; 
   %temp = 'goat_12.jpg';
-  temp = 'bag_377.jpg';
-  %temp = 'monkey_220.jpg';
+  %temp = 'bag_377.jpg';
+
+  image_set = 'ayahoo_test';
+  %image_set = 'apascal';
+  gPbdir = [BasePath,'out/',image_set,'_images/processed/gPb'];
+  img_dir = [BasePath,'data/',image_set,'_images'];
+  hog_dir = [BasePath,'out/',image_set,'_images/processed/hog'];
+  tc_dir = [BasePath,'out/',image_set,'_images/processed/tc2'];
+
+  temp = 'monkey_220.jpg';
+  temp = 'monkey_221.jpg';
   
   %img_name = regexprep(char(names_test(1)), '\.jpg', '');
   %img_fn = fullfile(img_dir, char(names_test(1)));
@@ -393,11 +402,18 @@ if (SEGMENTATION)
   svm.bVec = bVec;
   svm.kernel = kernel;
   svm.kerneloption = kerneloption;
-  [img, ucm2, mask2] = gPb(img_fn, 'out/',image_set,'_images/processed');
-  % attStruct is the structure with attributes hierarchy
+  [img, ucm2, mask2] = gPb(img_fn, sprintf('out/%s_images/processed',image_set));
+
+  base_name = regexprep(char(temp), '.jpg', '');
+  out_dir = [BasePath,'/out/',base_name];
+  if (exist(out_dir, 'dir') ~= 7)
+    mkdir(out_dir);
+  end
+  
+% attStruct is the structure with attributes hierarchy
   attStruct=hierarchy(img, img_name, svm, mask2, ucm2, depth, '', @visitor);
 
-  img_name = regexprep(char(temp), 'jpg', 'mat');
-  save([BasePath,img_name], 'attStruct');
+  %img_name = regexprep(char(temp), 'jpg', 'mat');
+  save([out_dir,'/attStruct'], 'attStruct');
   
 end
