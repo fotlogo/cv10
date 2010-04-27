@@ -31,8 +31,9 @@
 
 % clear
 
-BasePath='/u/atian/cv/final/code/';
+%BasePath='/u/atian/cv/final/code/';
 %BasePath='/u/edwardsj/classes/cs395T_vision/project/cv10/';
+BasePath=getenv('VISION_BASE_PATH');
 
 addpath(BasePath);
 addpath([BasePath,'grouping']);
@@ -77,7 +78,7 @@ count_test = size(names_test(:));
 TRAIN = 1;
 TEST = 1;
 SEGMENTATION = 0;
-FEATURE_TRAIN=0;
+FEATURE_TRAIN=1;
 FEATURE_TEST=0;
 %count_train = 2000;
 %count_test = 500;

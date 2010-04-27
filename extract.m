@@ -16,8 +16,8 @@ addpath('code/textons');
 %extract_features_dh('../../data/ayahoo_test_images', '../../out/ayahoo_test_images');
 
 %PASCAL 2008
-extract_features_dh('../../data/VOCdevkit/VOC2008/JPEGImages', '../../out/pascal');
+extract_features_dh('../../data/apascal_images', '../../out/apascal_images');
 
 cd ../..;
 
-exit
+%exit
