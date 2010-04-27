@@ -42,50 +42,67 @@ addpath([BasePath,'SVM-KM'])
 
 global img_dir hog_dir tc_dir num_atts atts atts_mask;
 
-gPbdir = [BasePath,'out/ayahoo_test_images/processed/gPb'];
+%image_set = 'ayahoo_test';
+image_set = 'apascal';
+
+gPbdir = [BasePath,'out/',image_set,'_images/processed/gPb'];
 
 %---------------------------------------
 % get attributes and bounding boxes for
 % data
 %---------------------------------------
-fname = [BasePath,'data/attribute_data/ayahoo_test.txt'];
-img_dir = [BasePath,'data/ayahoo_test_images'];
-hog_dir = [BasePath,'out/ayahoo_test_images/processed/hog'];
-tc_dir = [BasePath,'out/ayahoo_test_images/processed/tc2'];
-[img_names img_classes bboxes attributes] = read_att_data(fname);
+%fname = [BasePath,'data/attribute_data/',image_set,'.txt'];
+fname_train = [BasePath,'data/attribute_data/',image_set,'_train.txt'];
+fname_test = [BasePath,'data/attribute_data/',image_set,'_test.txt'];
+img_dir = [BasePath,'data/',image_set,'_images'];
+hog_dir = [BasePath,'out/',image_set,'_images/processed/hog'];
+tc_dir = [BasePath,'out/',image_set,'_images/processed/tc2'];
 
-TRAIN = 0;
-TEST = 0;
-SEGMENTATION = 1;
+[img_names img_classes bboxes attributes] = read_att_data(fname_train);
+names_train = img_names;
+classes_train = img_classes;
+bboxes_train = bboxes;
+attributes_train = attributes;
+count_train = size(names_train(:));
+
+[img_names img_classes bboxes attributes] = read_att_data(fname_test);
+names_test = img_names;
+classes_test = img_classes;
+bboxes_test = bboxes;
+attributes_test = attributes;
+count_test = size(names_train(:));
+
+TRAIN = 1;
+TEST = 1;
+SEGMENTATION = 0;
 FEATURE_TRAIN=0;
-FEATURE_TEST=0;
-count_train = 2000;
-count_test = 500;
+FEATURE_TEST=1;
+%count_train = 2000;
+%count_test = 500;
 
-% change to random of permutation here, Aibo
-rand('seed', 1);
-
+%% change to random of permutation here, Aibo
+%rand('seed', 1);
+%
 ratio=0.5  % ratio of positive samples for training
 att_train_thre=50; % lower threshold of training samples for each attribute
-
-
-rand_indices=randperm(length(img_names));
-train_indices=rand_indices(1:count_train);
-test_indices=rand_indices(count_train+1:count_train+count_test);
+%
+%rand_indices=randperm(length(img_names));
+%train_indices=rand_indices(1:count_train);
+%test_indices=rand_indices(count_train+1:count_train+count_test);
 
 %---------------------------------------
 % split image names and classes up into
 % training and testing sets
 %---------------------------------------
 
-names_train = img_names(train_indices,:);
-names_test = img_names(test_indices,:);
-classes_train = img_classes(train_indices,:);
-classes_test = img_classes(test_indices,:);
-bboxes_train = bboxes(train_indices,:);
-bboxes_test = bboxes(test_indices,:);
-attributes_train = attributes(train_indices,:);
-attributes_test = attributes(test_indices,:);
+%names_train = img_names(train_indices,:);
+%names_test = img_names(test_indices,:);
+%classes_train = img_classes(train_indices,:);
+%classes_test = img_classes(test_indices,:);
+%bboxes_train = bboxes(train_indices,:);
+%bboxes_test = bboxes(test_indices,:);
+%attributes_train = attributes(train_indices,:);
+%attributes_test = attributes(test_indices,:);
 
 % count_train = size(names_train, 1);
 % count_test = size(names_test, 1);
@@ -110,8 +127,6 @@ fclose(fid);
 % Load all of the features for the
 % dataset
 %---------------------------------------
-%num_features = 1384;
-%num_features = 1000;
 num_atts = size(atts, 1);
 
 % attributes mask
@@ -171,13 +186,14 @@ if (TRAIN==1)
   bVec={};
   
   for i = 1:num_atts
+    fprintf('training attribute %d\n', i);
     att = attributes_train(:,i);
     att_pos=find(att==1);
     
     % change attributes mask
-    if length(att_pos)<att_train_thre
-      atts_mask(i)=0;
-    end
+    %if length(att_pos)<att_train_thre
+    %  atts_mask(i)=0;
+    %end
 
     att_neg=find(att==0);
     if ((length(att_neg)/length(att_pos))>((1-ratio)/ratio))
@@ -202,6 +218,8 @@ if (TRAIN==1)
     y=svmval(features_temp,xsup,w,b,kernel,kerneloption);
     y(y>0)=1;
     y(y<=0)=0;
+    %y(isnan(y))=0;
+    
     % disp precision
     att_temp(att_temp==-1)=0;
     precision=sum(y==att_temp)/length(att_temp);
@@ -355,7 +373,11 @@ if (SEGMENTATION)
   svm.bVec = bVec;
   svm.kernel = kernel;
   svm.kerneloption = kerneloption;
-  [img, ucm2, mask2] = gPb(img_fn, 'out/ayahoo_test_images/processed');
+  [img, ucm2, mask2] = gPb(img_fn, 'out/',image_set,'_images/processed');
   % attStruct is the structure with attributes hierarchy
   attStruct=hierarchy(img, img_name, svm, mask2, ucm2, depth, '', @visitor);
+
+  img_name = regexprep(char(temp), 'jpg', 'mat');
+  save([BasePath,img_name], 'attStruct');
+  
 end
