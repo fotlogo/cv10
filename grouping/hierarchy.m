@@ -72,7 +72,8 @@ label_vec(label_vec == 0) = [];
 %	     max(label_vec)));
 
 cm = jet(min(256, max(unique(labels2))));
-imwrite(bsxfun(@times, img, uint8(mask)), sprintf('out/img%s.jpg', path));
+base_name = regexprep(char(img_name), '.jpg', '');
+imwrite(bsxfun(@times, img, uint8(mask)), sprintf('out/%s/img%s.jpg', base_name, path));
 %%imwrite(ucm2, sprintf('output/ucm%s.bmp', path));
 %%imwrite(labels2, cm, sprintf('output/labels%s.bmp', path));
 %%imwrite(labels, cm, sprintf('output/labels_%s.bmp', path));
