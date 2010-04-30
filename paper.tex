@@ -6,6 +6,9 @@
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{subfigure}
+\usepackage{algorithmic}
+\usepackage{algorithm}
 
 \newenvironment{tightenumerate}{
 \begin{enumerate}
@@ -92,6 +95,25 @@ The idea is to find image regions with salient attribute distributions.  If
 these regions can be combined together to for larger regions with attribute 
 distributions matching some object's canonical distribution then one can
 declare the combined region an accurate segmentation for that object.
+
+\begin{figure}
+\label{fig:truck}
+\centering
+\subfigure[]{
+\label{fig:trucka}
+\includegraphics[width=0.22\textwidth]{figures/truck_orig_med.eps}
+}
+\subfigure[]{
+\label{fig:truckb}
+\includegraphics[width=0.22\textwidth]{figures/truck_final_med.eps}
+}
+\caption{Segmentation by maximizing attribute saliency.  \subref{fig:trucka} shows
+the original image with any ``car'' attributes that were predicted.  $P$ is the probability
+that the image contains a car.  \subref{fig:truckb} shows the segmented image after
+running our segmentation tree pruning algorithm.  As extraneous regions are pruned
+more car attributes are predicted and the probability that the remaining image 
+contains a car increases.}
+\end{figure}
 
 In practice, however, the testing of all combinations of regions to find 
 objects is intractable.  We use two approximatory algorithms operating on
@@ -193,77 +215,143 @@ a useful addition to our system but make the scope too large.
 %-------------------------------------------------------------------------------
 \section{Technical approach}
 \label{sec:technical}
-Our approach begins with building a segmentation tree.  We use the segmentation
-approach of \cite{arbelaez09} (in fact, we use their code).  This is a hierarchical
-segmentation approach which first detects contours using the \emph{gPb} detector
+Our approach begins with training attribute classifiers.  We trained using
+an SVM with linear kernel.  A set of training images is annotated with objects
+contained in the image, bounding boxes for the objects, and attributes exhibited
+by the image.  We use a subset of the features used in \cite{farhadi09}, namely
+HOG, texture and color descriptors.  The HOG descriptors are quantized into 1000
+kmeans centers, and the texture and color are quantized to 256 and 128 kmeans centers,
+respectively.  Our features differ from \cite{farhadi09} in various ways.  We don't
+use edge descriptors, nor do we generate ``sub-''histograms for 6 cells in the
+image.  The presence of cell histograms would complicate matters when extracting
+features from segmented regions.
+
+Once the attribute classifiers are trained we build a segmentation tree for each
+image.  We use the segmentation
+approach of \cite{arbelaez09}.  This produces a hierarchical
+segmentation by first detecting contours using the \emph{gPb} detector
 \cite{maire08}.  Once the contours are detected, regions are discovered using a
 watershed algorithm after which an Ultrametric Contour Map (UCM) is constructed,
 which defines the region hierarchy.
 
-The top node of this hierarchy is the image itself.  Our algorithm first predicts
-attributes on the image.  Our attributes are trained using images from the pascal 
-2008 dataset using the same annotations used in \cite{farhadi09}.  We trained using
-an SVM with linear kernel.
+We use the UCM to generate two types of region tree, shown in figure \ref{fig:tree}.
+The first tree is an additive tree, where regions are subdivided into successively
+smaller regions moving down in the tree.  We call it ``additive'' because the
+original image can be reconstructed by adding the regions from each leaf node
+together.  The figures show the nodes of the trees as containing images, but in
+truth the trees contain binary masks which, when applied to the original image,
+produce the shown node contents.
 
-TO TALK ABOUT:
-? Discovered that our implementation learns largely on the object and not truly
-on the different attributes.
+The second tree is ``subtractive.''  The tree has identical structure to the additive
+tree and each node contains the inverse of the mask of the corresponding node
+in the additive tree.
 
-We will assume that we know that an object is present in the image, as is done in \cite{borenstein04}, as opposed to no knowledge, as in \cite{shotton06}.  So we will have to use tagged examples.
+The final segmentation is obtained by pruning the region tree until a final segmentation
+meeting some criterion of absolute or relative attribute saliency is found.
+We have two methods for pruning the tree, each showing relative strengths and
+weakness.  The first is a semi-greedy additive approach which uses the additive
+tree.  The second is a greedy subtractive approach.  We now discuss each of these 
+in detail.
 
-The labeling will be binary - imageground and background, as opposed to multi-label results.
+\begin{figure*}
+\label{fig:tree}
+\centering
+\subfigure[]{
+\label{fig:treea}
+\includegraphics[width=0.45\textwidth]{figures/tree_additive.eps}
+}
+\subfigure[]{
+\label{fig:treeb}
+\includegraphics[width=0.45\textwidth]{figures/tree_subtractive.eps}
+}
+\caption{The two segmentation hierarchies used by the additive \subref{fig:treea}
+and subtractive \subref{fig:treeb} algorithms.  The additive hierarchy breaks the
+regions into smaller and smaller regions, while the subtractive hierarchy increases
+the size of the regions as smaller and smaller chunks are removed from the image.}
+\end{figure*}
 
-We'll use a conditional Markov Random Field (CRF) similar to \cite{gould08}.  The CRF will encode the neighborhood structure/adjacency naturally.
+\subsection{Additive algorithm}
 
-We need to decide whether to use superpixels, as in \cite{gould08} or bag of regions as in \cite{gu09, russell06}, and whether to maintain hierarchy or not.  Another approach to consider is in \cite{hoiem05}.
+Blah, blah, blah.
 
-We have to be careful on attribute definitions, to decide exactly where they lie on the feature spectrum.  I think we should restrict ourselves to labeling cars, and thus the attributes will be things like wheel, door, window, headlight, running board, taillight, etc.
+Predicted probabilities are determined using standard histogram intersection 
+between a pattern histogram for the given object and the predicted 
+histogram for the region.
 
-%\begin{figure}
-%\center
-%\includegraphics[width=0.80\textwidth]{flowchart.eps}
-%\caption{Flow chart of testing phase of our algorithm}
-%\label{fig:flow}
-%\end{figure}
-%
-%Figure \ref{fig:flow} shows the basic elements of the testing phase of our algorithm.  
-%We begin by hierarchically segmenting the image, retaining the hierarchy of the
-%segmentation.  Each segment, or region, is then assigned attributes using the algorithm
-%found in \cite{farhadi09}.  We will use the code for this algorithm that is 
-%provided by the authors.  
-%
-%Once we have attributes assigned to each region we set up
-%the CRF.  The energy function will look something like this:
-%
-%\begin{equation}
-%\psi(\mb{m}) = \sum_i{\left(\phi(I|m_i)+ \sum_j{f^{\mathsf{pair}}(m_i,m_j,I)} \right)}
-%\end{equation}
-%
-%where
-%
-%\begin{equation}
-%\phi(I|m_i) = f^{\mathsf{relloc}}(S_i, c_i, I) + f^{\mathsf{app}}(S_i, c_i, I)
-%\end{equation}
-%
-%$f^{\mathsf{relloc}}(S_i, c_i, I)$ and $f^{\mathsf{app}}(S_i, c_i, I)$ are defined much in 
-%the same spirit as they are in \cite{gould08}.  The relative location feature 
-%function requires relative location probability maps which we may build by hand
-%or learn (see Tasks section below).  The features will be built from the probability
-%maps using a voting scheme as in \cite{gould08}.
-%
-%We are still unsure what the smoothness function 
-%$f^{\mathsf{pair}}(m_i,m_j,I)}$ will look like.  We may learn pairwise attribute
-%affinity weights or simply determine a weight based on how many car attributes
-%the two regions $S_i$ and $S_j$ have.
-%
-%As we've chosen to do a binary segmentation (figure, ground) we can use a min-cut-based
-%algorithm \cite{boykov01} for the energy minimization of the CRF.  We hope to be able
-%to use existing code for this (we can't use the code in \cite{gould08} as they don't
-%use min-cut), but have not yet looked carefully.
-%
-%Once the CRF is in place, we run the energy minimization which gives us the
-%segmentation with the estimated highest posterior (if we understand it
-%correctly).
+\[ P_{pred} = \frac{H_{pattern} \cap H_{pred}}{H_{pattern} \cup H_{pred}} \]
+
+\subsection{Subtractive algorithm}
+
+The subtractive algorithm relies on the idea that if removing a region from
+an image doesn't significantly affect the probability of the image containing
+the object (which probability is obtained using the predicted attribute 
+distribution) then that region can be safely removed in the final segmentation.
+The algorithm itself is shown in algorithm \ref{alg:sub_prune}.
+
+\begin{algorithm}
+\begin{algorithmic}[1]
+  \STATE \textbf{input:} 
+  \STATE \hspace{3 mm} node $n$ in segmentation tree
+  \STATE \hspace{3 mm} master mask $m_m$
+  \STATE \hspace{3 mm} probability $P_{root}$ on root node
+  \STATE \hspace{3 mm} factor $f$
+  \STATE $m_n$ := mask of $n$
+  \STATE $H_{pred}$ := predict attributes on image($m_n \cap m_m$)
+  \STATE $\displaystyle P_{pred} = \frac{H_{pattern} \cap H_{pred}}{H_{pattern} \cup H_{pred}}$
+  \IF{$P_{pred} < f P_{root}$}
+    \STATE SUBTRACTIVE\_PRUNE(n.children)
+  \ELSE
+    \STATE $m_m = m_m \cap m_n$
+  \ENDIF
+\end{algorithmic}
+\caption{SUBTRACTIVE\_PRUNE}
+\label{alg:sub_prun}
+\end{algorithm}
+
+The subtractive algorithm begins at the root of the tree and predicts attributes.
+This attribute distribution and its associated probability $P_{root}$ is assumed to be
+canonical for the image.  That is, any final segmentation should not have
+significantly less probability $P_{pred}$ than $P_{root}$.  The algorithm traverses
+the subtractive tree depth-first, predicting on each node.  
+Any node that doesn't have a significant negative effect on the probability
+of the presence of the object is removed.  This test is done on line 9.  If the
+predicted probability was significantly affected, then we know that the region
+must remain.  But it doesn't mean that sub-regions might be able to be pruned
+out.  So the procedure is called recursively, checking for smaller regions
+that might be able to be pruned (line 10).
+
+If the probability was not significantly affected, then the mask is applied
+(line 12) and no recursive call is made.  This is important, because it means
+that we can remove large chunks of the image wholesale and bypass predicting
+on the node's posterity.
+
+$f$ is an important parameter that requires tuning.  Increasing $f$ makes the
+algorithm more conservative, that is, less likely to apply removals.  Decreasing
+$f$ makes it more liberal.  We found $f=0.9$ to be a reasonable value for most images.
+Figure \ref{fig:f} shows results of adjusting $f$.
+
+The runtime performance of the algorithm is dominated by the prediction step.
+Thus the advantage of pruning large chunks early is highly beneficial to 
+the runtime of the algorithm.
+
+\begin{figure}
+\centering
+\subfigure[]{
+\label{fig:fa}
+\includegraphics[width=0.22\textwidth]{figures/parking_0.9.eps}
+}
+\subfigure[]{
+\label{fig:fb}
+\includegraphics[width=0.22\textwidth]{figures/parking_1.0.eps}
+}
+\caption{Result of adjusting the factor $f$ in the subtractive algorithm.
+\subref{fig:fa} shows running the algorithm with $f=0.9$ and \subref{fig:fb}
+shows running the algorithm with $f=1.0$.  Note that \subref{fig:fb} retains
+more of the cars, especially the two closest on the right and left, but also
+hsa more false-positive pixels, such as the ceiling region of the parking
+garage.}
+\label{fig:f}
+\end{figure}
 
 %-------------------------------------------------------------------------------
 % experimental results
@@ -271,6 +359,8 @@ We have to be careful on attribute definitions, to decide exactly where they lie
 \section{Experimental results}
 \label{sec:results}
 Here are some results.
+ trained using images from the pascal 
+2008 dataset using the same annotations used in \cite{farhadi09}.
 
 %-------------------------------------------------------------------------------
 % conclusions and future work
@@ -278,6 +368,10 @@ Here are some results.
 \section{Conclusions and future work}
 \label{sec:conclusions}
 Highly dependent on attribute selection and discriminatory ability of attributes.
+
+\subsection*{Acknowledgements}
+Thanks to the authors of \cite{arbelaez09} and \cite{farhadi09} for use of their
+segmentation and feature extraction code, respectively.
 
 %-------------------------------------------------------------------------------
 % bibliography
