@@ -213,28 +213,49 @@ a useful addition to our system but make the scope too large.
 %-------------------------------------------------------------------------------
 % technical approach
 %-------------------------------------------------------------------------------
-\section{Technical approach}
-\label{sec:technical}
-Our approach begins with training attribute classifiers.  We trained using
-an SVM with linear kernel.  A set of training images is annotated with objects
-contained in the image, bounding boxes for the objects, and attributes exhibited
-by the image.  We use a subset of the features used in \cite{farhadi09}, namely
-HOG, texture and color descriptors.  The HOG descriptors are quantized into 1000
-kmeans centers, and the texture and color are quantized to 256 and 128 kmeans centers,
-respectively.  Our features differ from \cite{farhadi09} in various ways.  We don't
-use edge descriptors, nor do we generate ``sub-''histograms for 6 cells in the
-image.  The presence of cell histograms would complicate matters when extracting
-features from segmented regions.
+\section{Attribute Detection}
+\label{sec:attribute}
 
-Once the attribute classifiers are trained we build a segmentation tree for each
-image.  We use the segmentation
+Attributes are high-level features which can reflect some semantic properties of objects. Given the attributes, we can do object detection based on the their distribution. We use the same attributes set as \cite{farhadi09}. This set contains three types of attributes, including Shape, Part and Material. All the attributes are listed in figure ?.
+
+We use similar algorithm as \cite{farhadi09} to train the attribute models. Three different type of features are used, such as HOG, texture and color descriptors\cite{farhadi09}. Those features can capture different properties. We use kmeans to quantize all the features. The HOG descriptors are quantized into 1000 clusters, and the texture and color are quantized to 256 and 128 clusters, respectively. All the quantized features are concatenated to form the 1384 deminsional feature. 
+
+For training, we use SVM classifier with Gaussian kernel to train model for each attribute. The precision of all the attributes on the test set is illustrated in figure?.
+
+
+%Our approach begins with training attribute classifiers.  We trained using
+%an SVM with linear kernel.  A set of training images is annotated with objects
+%contained in the image, bounding boxes for the objects, and attributes exhibited
+%by the image.  We use a subset of the features used in \cite{farhadi09}, namely
+%HOG, texture and color descriptors.  The HOG descriptors are quantized into 1000
+%kmeans centers, and the texture and color are quantized to 256 and 128 kmeans centers,
+%respectively.  Our features differ from \cite{farhadi09} in various ways.  We don't
+%use edge descriptors, nor do we generate ``sub-''histograms for 6 cells in the
+%image.  The presence of cell histograms would complicate matters when extracting
+%features from segmented regions.
+
+\section{Hierarchy Segmentation}
+\label{sec:segmentation}
+
+We use the segmentation
 approach of \cite{arbelaez09}.  This produces a hierarchical
 segmentation by first detecting contours using the \emph{gPb} detector
 \cite{maire08}.  Once the contours are detected, regions are discovered using a
 watershed algorithm after which an Ultrametric Contour Map (UCM) is constructed,
-which defines the region hierarchy.
+which defines the region hierarchy. Some example of the hierarchy segmentation is shown in figure?
 
-We use the UCM to generate two types of region tree, shown in figure \ref{fig:tree}.
+After the construction of hierarchy segmentation tree, we detect all the attributes in each node, including the intermedia node and leaf node. We use the output of SVM as the confidence (not binary), so each node can be represented by the confidence distribution of all attributes.
+
+
+\section{Object Detection and Segmentation}
+\label{sec:detection}
+
+Our objective is to detect object and segment it out. In our hierarchy segmentation tree, the problem changes to how to select those nodes belong to the desired object. We estimate the probability that a node is belong to object based on the attribute confidence distribution. For each object, we manually give the desired attribute distribution by common knowledge. We use the histogram intersection between the desired distribution and the estimated confidence distribution in each node as the similarity measure. The histogram intersection is calculated as follows:
+ 
+\[ HI(H_{model},H_{pred}) = \frac{|H_{model} \cap H_{pred}|}{|H_{model}|} \]
+
+
+To select the nodes, we propose two different top-down prune algorithms, additive algorithm and subtractive algorithm. We use the UCM to generate two types of region tree, shown in figure \ref{fig:tree}.
 The first tree is an additive tree, where regions are subdivided into successively
 smaller regions moving down in the tree.  We call it ``additive'' because the
 original image can be reconstructed by adding the regions from each leaf node
@@ -271,14 +292,52 @@ the size of the regions as smaller and smaller chunks are removed from the image
 \end{figure*}
 
 \subsection{Additive algorithm}
+\label{ssec:additive}
 
-Blah, blah, blah.
+This prune algorithm is based on three observations. (1) At least one node in the segmentation tree contrains the whole object. (This is always true since the root node contains the whole image). (2) If both parrent node and child node have high confidence as the object, the segment of child node is more accurate than that of the parrent node. (3) Even if the some node has high confidence as the object, its segmentation still need to improve. The details of the additive algorithm is shown in alg ?.\\
 
-Predicted probabilities are determined using standard histogram intersection 
-between a pattern histogram for the given object and the predicted 
-histogram for the region.
+The idea of this algorithm is to find out the minimum discriminative segments, either positive or negative, and combine all of them together to form the final segment. We give three threshold for the similarity measure, $thre\_perf$, $thre\_pos$ and $thre\_neg$ which represent perfect segment, positive segment and negative segment, respectively. If the similarity is above $thre\_perf$, which means the segment is a perfect object, we cut all the nodes below and return this segment. If the similarity is below $thre\_neg$, which means the segment is impossible to be related to the object, we cut all the nodes below too and return NULL. If the similarity is between $thre\_perf$ and $thre\_pos$, which means the node definitely contains the object but the segmentation is not perfect yet, we keep on checking its children nodes to refine the segmentation. The final case is that the similarity is between $thre\_pos$ and $thre\_neg$, which means we are not sure whether there is an object in the node, so we just keep on searching its children. \\
 
-\[ P_{pred} = \frac{H_{pattern} \cap H_{pred}}{H_{pattern} \cup H_{pred}} \]
+The object detection is based on the output of ADDITIVE\_PRUNE. If the output is not NULL, which means at least one node in the tree has similarity above $thre\_pos$, we think the object is detected in this image.\\ 
+
+(We also plan to do the vertical confidence propogation. But the experiment is too slow, we cannot incorporate it in this draft. We will show it in the final paper.)\\
+
+
+\begin{algorithm}
+\begin{algorithmic}
+  \STATE \textbf{input:} 
+  \STATE \hspace{3 mm} node $n$ in segmentation tree
+  \STATE \hspace{3 mm} desired object model $obj\_model$
+  \STATE \hspace{3 mm} threshold for perfect segment $thre\_perf$
+  \STATE \hspace{3 mm} threshold for positive segment $thre\_pos$
+  \STATE \hspace{3 mm} threshold for negative segment $thre\_neg$
+  \STATE \textbf{output:} 
+  \STATE \hspace{3 mm} refined segment 
+  \STATE
+  \STATE $sim=HI(obj\_model,n.conf)$
+  \IF{$sim \ge thre\_perf$}
+    \STATE return $n.segment$
+  \ENDIF
+  \IF{$sim \le thre\_neg$}
+    \STATE return $NULL$
+  \ENDIF
+  \STATE $s'=NULL$
+  \FOR{$i=1$ to $n.childNum$} 
+    \STATE s\{i\}=ADDITIVE\_PRUNE(n.children\{i\},obj\_model,...
+    \STATE ... thre\_perf,thre\_pos,thre\_neg)
+    \STATE s'=s'+s\{i\}
+  \ENDFOR
+  \IF{$sim\ge thre\_pos$ and $s'==NULL$}
+    \STATE return n.segment
+  \ELSE
+    \STATE return s'
+  \ENDIF
+\end{algorithmic}
+\caption{ADDITIVE\_PRUNE}
+\label{alg:add_prun}
+\end{algorithm}
+ 
+
 
 \subsection{Subtractive algorithm}
 
@@ -358,6 +417,14 @@ garage.}
 %-------------------------------------------------------------------------------
 \section{Experimental results}
 \label{sec:results}
+
+In this section, we evaluate our attribute based object detection and segmentation algorithm. We will answer four questions. (1) What is the performance of object detection and segmentation? (2) What is the influences of different parameters? (3) What are the advantages of the two pruning algorithms? (4) Is vertical confidence propogation useful? 
+
+\subsection{Dataset}
+\label{ssec:dataset}
+
+We use Pascal2008 
+
 Here are some results.
  trained using images from the pascal 
 2008 dataset using the same annotations used in \cite{farhadi09}.
