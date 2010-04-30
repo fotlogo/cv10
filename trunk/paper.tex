@@ -63,30 +63,65 @@ Attributes have been shown to be effective in assisting object detection and
 classification, and they provide means to also incorporate semantic
 information available to and provided by humans.  On another front, the
 combination of segmentation and object classification has been shown to
-improve both segmentation and classification.  We propose to incorporate
+improve both segmentation and classification.  We present a method of incorporating
 attributes into segmentation using a hierarchical methodology.
-That is, using attributes as features, we will discover attributes of regions
-at all levels of a hierarchical segmentation, use a voting scheme to
-boost attributes based on relative location probability maps,
-incorporate hierarchical confidences in determining a confidence for
-a given region, and employ a min-cut solution to a CRF to determine
-final confidences at the lowest segmentation level.
-
-We will initially test the system by determining only
-figure and ground (not multiple labelings) where the only object class
-is a car.
+That is, using attributes as features, we discover attributes of regions
+at all levels of a hierarchical segmentation, 
+incorporate hierarchical confidences in determining a confidence that
+a given region is part of a given object, and segment the image using
+these confidences.  We also present results from experiments run using
+this method.
 \end{abstract}
 
 %-------------------------------------------------------------------------------
 % introduction
 %-------------------------------------------------------------------------------
 \section{Introduction}
-Here is the introduction.
+Very recent work on using attributes as features \cite{farhadi09, lampert09}
+has shown that attributes are an effective way of communicating information
+about an object in an image.  Attributes are, in essence, semantic high-level
+features.  The attributes of an image are learned using low-level features,
+and once learned, they can be used in object detection and also in describing
+objects in an image that are unknown.
+
+Image segmentation is a very different field of research and has a very different
+goal - that of finding very accurate boundaries of objects in an image.
+
+Our work focuses on leveraging attributes to produce accurate segmentations.
+The idea is to find image regions with salient attribute distributions.  If
+these regions can be combined together to for larger regions with attribute 
+distributions matching some object's canonical distribution then one can
+declare the combined region an accurate segmentation for that object.
+
+In practice, however, the testing of all combinations of regions to find 
+objects is intractable.  We use two approximatory algorithms operating on
+a segmentation hierarchy to determine salient regions.  Both are subtractive
+algorithms, which first predict attributes on the entire region and then
+proceed by observing the effects of removing different regions during
+a top-down traversal of the tree.  The benefit of using these methods are
+that large regions that clearly don't contribute to attribute saliency
+can be pruned from the tree early in the traversal.  This approach avoids
+the combinatoric complexity of a full search and, even more, prunes many
+regions from the segmentation tree before they even are searched, bringing
+the computational complexity, in practice, to roughly $O(n)$ where $n$ is
+the number of leaves in the segmentation tree.
+
+While we focus on segmentation of known objects, we anticipate an application
+that takes more advantage of attributes: that of segmenting \emph{unknown}
+objects from an image that exhibit salient but unrecognized attribute
+distributions.  This type of application brings out some of the true power of
+attributes, that of assigning semantic meaning to unknown, segmented objects.
+
+This paper is organized as follows: we first discuss related work (\S \ref{sec:related_work})
+and then present the algorithm in detail (\S \ref{sec:technical}).  We then discuss results from
+a small-scale experiment on images from the pascal 2008 dataset (\S \ref{sec:results}), after which we draw
+conclusions and discuss future directions (\S \ref{sec:conclusions}).
 
 %-------------------------------------------------------------------------------
 % related work
 %-------------------------------------------------------------------------------
 \section{Related work}
+\label{sec:related_work}
 A significant amount of recent work has been done in the area of using
 attributes as high-level features for image classification and object
 description \cite{farhadi09, lampert09, kumar09}.  
@@ -157,6 +192,23 @@ a useful addition to our system but make the scope too large.
 % technical approach
 %-------------------------------------------------------------------------------
 \section{Technical approach}
+\label{sec:technical}
+Our approach begins with building a segmentation tree.  We use the segmentation
+approach of \cite{arbelaez09} (in fact, we use their code).  This is a hierarchical
+segmentation approach which first detects contours using the \emph{gPb} detector
+\cite{maire08}.  Once the contours are detected, regions are discovered using a
+watershed algorithm after which an Ultrametric Contour Map (UCM) is constructed,
+which defines the region hierarchy.
+
+The top node of this hierarchy is the image itself.  Our algorithm first predicts
+attributes on the image.  Our attributes are trained using images from the pascal 
+2008 dataset using the same annotations used in \cite{farhadi09}.  We trained using
+an SVM with linear kernel.
+
+TO TALK ABOUT:
+? Discovered that our implementation learns largely on the object and not truly
+on the different attributes.
+
 We will assume that we know that an object is present in the image, as is done in \cite{borenstein04}, as opposed to no knowledge, as in \cite{shotton06}.  So we will have to use tagged examples.
 
 The labeling will be binary - imageground and background, as opposed to multi-label results.
@@ -217,13 +269,15 @@ We have to be careful on attribute definitions, to decide exactly where they lie
 % experimental results
 %-------------------------------------------------------------------------------
 \section{Experimental results}
+\label{sec:results}
 Here are some results.
 
 %-------------------------------------------------------------------------------
 % conclusions and future work
 %-------------------------------------------------------------------------------
 \section{Conclusions and future work}
-Here are some conclusions.
+\label{sec:conclusions}
+Highly dependent on attribute selection and discriminatory ability of attributes.
 
 %-------------------------------------------------------------------------------
 % bibliography
