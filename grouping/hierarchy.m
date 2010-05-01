@@ -90,6 +90,8 @@ attStruct.child={};
 attStruct.childNum=0;
 attStruct.attribute=attPred;
 attStruct.confidence=attConf;
+attStruct.mask=mask;
+attStruct.area=sum(sum(mask));
 
 if (size(label_vec, 1) > 1),
 

@@ -8,7 +8,7 @@ if [ -f cur.jpg ]; then
     rm cur.jpg
 fi
 
-for i in 1 2 3 4 5; do
+for i in {1..10}; do
     for j in `ls | egrep '.*img[0-9]{'$i'}.jpg'`
       do
       echo $j

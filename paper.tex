@@ -69,10 +69,10 @@ combination of segmentation and object classification has been shown to
 improve both segmentation and classification.  We present a method of incorporating
 attributes into segmentation using a hierarchical methodology.
 That is, using attributes as features, we discover attributes of regions
-at all levels of a hierarchical segmentation, 
+at all levels of a hierarchical segmentation,
 incorporate hierarchical confidences in determining a confidence that
 a given region is part of a given object, and segment the image using
-these confidences.  We also present encouraging segmentation results 
+these confidences.  We also present encouraging segmentation results
 from experiments run using this method.
 \end{abstract}
 
@@ -92,9 +92,16 @@ goal - that of finding very accurate boundaries of objects in an image.
 
 Our work focuses on leveraging attributes to produce accurate segmentations.
 The idea is to find image regions with salient attribute distributions.  If
-these regions can be combined together to for larger regions with attribute 
+these regions can be combined together to for larger regions with attribute
 distributions matching some object's canonical distribution then one can
 declare the combined region an accurate segmentation for that object.
+
+\begin{figure}
+\centering
+\includegraphics[width=0.5\textwidth]{figures/flowchart.eps}
+\caption{Flowchart of the proposed algorithm.} \label{fig:flowchart}
+\end{figure}
+
 
 \begin{figure}
 \centering
@@ -110,23 +117,26 @@ declare the combined region an accurate segmentation for that object.
 the original image with any ``car'' attributes that were predicted.  $P$ is the probability
 that the image contains a car.  \subref{fig:truckb} shows the segmented image after
 running our segmentation tree pruning algorithm.  As extraneous regions are pruned
-more car attributes are predicted and the probability that the remaining image 
+more car attributes are predicted and the probability that the remaining image
 contains a car increases.}
 \label{fig:truck}
 \end{figure}
 
-In practice, however, the testing of all combinations of regions to find 
-objects is intractable.  We use two approximatory algorithms operating on
-a segmentation hierarchy to determine salient regions.  Both are subtractive
-algorithms, which first predict attributes on the entire region and then
-proceed by observing the effects of removing different regions during
-a top-down traversal of the tree.  The benefit of using these methods are
-that large regions that clearly don't contribute to attribute saliency
-can be pruned from the tree early in the traversal.  This approach avoids
-the combinatoric complexity of a full search and, even more, prunes many
-regions from the segmentation tree before they even are searched, bringing
-the computational complexity, in practice, to roughly $O(n)$ where $n$ is
-the number of leaves in the segmentation tree.
+In practice, however, the testing of all combinations of regions to
+find objects is intractable.  We use two approximatory algorithms
+operating on a segmentation hierarchy to determine salient regions.
+Both are subtractive algorithms, which first predict attributes on
+the entire region and then proceed by observing the effects of
+removing different regions during a top-down traversal of the tree.
+The benefit of using these methods are that large regions that
+clearly don't contribute to attribute saliency can be pruned from
+the tree early in the traversal.  This approach avoids the
+combinatoric complexity of a full search and, even more, prunes many
+regions from the segmentation tree before they even are searched,
+bringing the computational complexity, in practice, to roughly
+$O(n)$ where $n$ is the number of leaves in the segmentation tree.
+The flowchart of our algorithm is shown in Figure
+\ref{fig:flowchart}.
 
 While we focus on segmentation of known objects, we anticipate an application
 that takes more advantage of attributes: that of segmenting \emph{unknown}
@@ -149,11 +159,11 @@ and has not yet been updated to reflect what we actually did.]
 
 A significant amount of recent work has been done in the area of using
 attributes as high-level features for image classification and object
-description \cite{farhadi09, lampert09, kumar09}.  
+description \cite{farhadi09, lampert09, kumar09}.
 Another area of computer vision, that of segmentation,
 has seen a resurgence of popularity as methods to incorporate top-down
 information into segmentation have been shown to be highly effective
-\cite{borenstein04, pantofaru, gu09, russell06, malisiewicz, leibe04, hoiem05, shotton06}.  
+\cite{borenstein04, pantofaru, gu09, russell06, malisiewicz, leibe04, hoiem05, shotton06}.
 We propose to leverage research done in both of these areas -- attributes
 and top-down/bottom-up segmentation -- to produce a combined approach.
 
@@ -166,7 +176,7 @@ features and object classes. Based on this layer, they can predict
 disjoint classes that are not seen in the training set.  Both of these
 approaches are geared toward object detection and classification.  While
 our method goes further, incorporating segmentation, we will be using
-the ideas and algorithms in \cite{farhadi09} for assignments of 
+the ideas and algorithms in \cite{farhadi09} for assignments of
 attributes to different segmented regions.
 
 Object classification can give some top-down high-level information
@@ -182,7 +192,7 @@ this paper, but without discarding the hierarchy.
 Russell et al \cite{russell06} detect the whole object in each of
 the multiple segment, by assuming that most objects get segmented
 correctly at least once during the multiple segmentation. Our approach
-will be far less aggressive in that we will use object classes and 
+will be far less aggressive in that we will use object classes and
 features (attributes in our case) that are known \emph{a priori}.
 Pantofaru et
 al \cite{pantofaru} use three different segmentation algorithms to
@@ -244,9 +254,13 @@ Clear & Shiny & Vegetation & Leather \\
 \label{fig:atts}
 \end{figure}
 
-We use similar algorithm as \cite{farhadi09} to train the attribute models. Three different type of features are used, such as HOG, texture and color descriptors\cite{farhadi09}. Those features can capture different properties. We use kmeans to quantize all the features. The HOG descriptors are quantized into 1000 clusters, and the texture and color are quantized to 256 and 128 clusters, respectively. All the quantized features are concatenated to form the 1384 deminsional feature. 
+We use similar algorithm as \cite{farhadi09} to train the attribute models. Three different type of features are used, such as HOG, texture and color descriptors\cite{farhadi09}. Those features can capture different properties. We use kmeans to quantize all the features. The HOG descriptors are quantized into 1000 clusters, and the texture and color are quantized to 256 and 128 clusters, respectively. All the quantized features are concatenated to form the 1384 deminsional feature.
 
-For training, we use SVM classifier with Gaussian kernel to train model for each attribute. The precision of all the attributes on the test set is illustrated in figure?.
+For training, we use SVM classifier with Gaussian kernel to train
+model for each attribute.
+
+%The precision of all the attributes on the test set is illustrated
+%in figure?.
 
 
 %Our approach begins with training attribute classifiers.  We trained using
@@ -263,23 +277,39 @@ For training, we use SVM classifier with Gaussian kernel to train model for each
 \section{Hierarchy Segmentation}
 \label{sec:segmentation}
 
-We use the segmentation
-approach of \cite{arbelaez09}.  This produces a hierarchical
-segmentation by first detecting contours using the \emph{gPb} detector
-\cite{maire08}.  Once the contours are detected, regions are discovered using a
-watershed algorithm after which an Ultrametric Contour Map (UCM) is constructed,
-which defines the region hierarchy. Some example of the hierarchy segmentation is shown in figure?
+We use the segmentation approach of \cite{arbelaez09}.  This
+produces a hierarchical segmentation by first detecting contours
+using the \emph{gPb} detector \cite{maire08}.  Once the contours are
+detected, regions are discovered using a watershed algorithm after
+which an Ultrametric Contour Map (UCM) is constructed, which defines
+the region hierarchy. Some example of the hierarchy segmentation is
+shown in Figure \ref{fig:tree}.
 
-After the construction of hierarchy segmentation tree, we detect all the attributes in each node, including the intermedia node and leaf node. We use the output of SVM as the confidence (not binary), so each node can be represented by the confidence distribution of all attributes.
+After the construction of hierarchy segmentation tree, we detect all
+the attributes in each node, including the intermediate node and
+leaf node. We use the output of SVM as the confidence (not binary),
+so each node can be represented by the confidence distribution of
+all attributes.
 
 
 \section{Object Detection and Segmentation}
 \label{sec:detection}
 
-Our objective is to detect object and segment it out. In our hierarchy segmentation tree, the problem changes to how to select those nodes belong to the desired object. We estimate the probability that a node is belong to object based on the attribute confidence distribution. For each object, we manually give the desired attribute distribution by common knowledge. We use the histogram intersection between the desired distribution and the estimated confidence distribution in each node as the similarity measure. The histogram intersection is calculated as follows:
- 
-\[ HI(H_{model},H_{pred}) = \frac{|H_{model} \cap H_{pred}|}{|H_{model}|} \]
+Our objective is to detect object and segment it out. In our
+hierarchy segmentation tree, the problem changes to how to select
+those nodes belong to the desired object. We estimate the
+probability that a node is belong to object based on the attribute
+confidence distribution. For each object, we manually give the
+desired attribute distribution by common knowledge. We use the
+histogram intersection between the desired distribution and the
+estimated confidence distribution in each node as the similarity
+measure. The histogram intersection is calculated as follows:
 
+\[ HI(H_{model},H_{pred}) = \frac{|H_{model} \cap H_{pred}|}{|H_{model}|}
+\] ,
+
+where $H_{model}$ and $H_{pred}$ represent the desired attribute
+distribution and predicted distribution.
 
 To select the nodes, we propose two different top-down prune algorithms, additive algorithm and subtractive algorithm. We use the UCM to generate two types of region tree, shown in figure \ref{fig:tree}.
 The first tree is an additive tree, where regions are subdivided into successively
@@ -297,7 +327,7 @@ The final segmentation is obtained by pruning the region tree until a final segm
 meeting some criterion of absolute or relative attribute saliency is found.
 We have two methods for pruning the tree, each showing relative strengths and
 weakness.  The first is a semi-greedy additive approach which uses the additive
-tree.  The second is a greedy subtractive approach.  We now discuss each of these 
+tree.  The second is a greedy subtractive approach.  We now discuss each of these
 in detail.
 
 \begin{figure*}
@@ -320,9 +350,34 @@ the size of the regions as smaller and smaller chunks are removed from the image
 \subsection{Additive algorithm}
 \label{ssec:additive}
 
-This pruning algorithm is based on three observations. (1) At least one node in the segmentation tree contrains the whole object. (This is always true since the root node contains the whole image). (2) If both parent node and child node have high confidence of containing the object, the segmentation of the child node is more accurate than that of the parrent node. (3) Even if the same node has high confidence of containing the object, its segmentation can still improve. The details of the additive algorithm is shown in algorithm \ref{alg:add_prune}.
+This pruning algorithm is based on three observations. (1) At least
+one node in the segmentation tree contrains the whole object. (This
+is always true since the root node contains the whole image). (2) If
+both parent node and child node have high confidence of containing
+the object, the segmentation of the child node is more accurate than
+that of the parrent node. (3) Even if some node has high confidence
+of containing the object, its segmentation can still be improved by
+removing irrelevant children node. The details of the additive
+algorithm is shown in algorithm \ref{alg:add_prune}.
 
-The idea of the algorithm is to find the smallest discriminative regions, either positive or negative, and combine all of them together to form the final segmentation. We use three threshold for the similarity measure, $thre\_perf$, $thre\_pos$ and $thre\_neg$ which represent perfect segment, positive segment and negative segment, respectively. If the similarity is above $thre\_perf$, which means the segmentation is perfect, we cut all the nodes below and return this segment. If the similarity is below $thre\_neg$, which means the segment does not contain the object, we cut all the nodes below and return NULL. If the similarity is between $thre\_perf$ and $thre\_pos$, which means the node definitely contains the object but the segmentation is not perfect yet, we keep on checking its children nodes to refine the segmentation. The final case is that the similarity is between $thre\_pos$ and $thre\_neg$, which means we are not sure whether there is an object in the node, so we just keep on searching its children. 
+The idea of the algorithm is to find the smallest discriminative
+regions, either positive or negative. We combine all the smallest
+positive regions while remove all the negative ones to form the
+final segmentation. We use three threshold for the similarity
+measure, $thre\_perf$, $thre\_pos$ and $thre\_neg$ which represent
+perfect segment, positive segment and negative segment,
+respectively. If the similarity is above $thre\_perf$, which means
+the segmentation is perfect for the object, we cut all the nodes
+below and return this segment. If the similarity is below
+$thre\_neg$, which means the segment does not contain the object, we
+cut all the nodes below and return NULL. If the similarity is
+between $thre\_perf$ and $thre\_pos$, which means the node
+definitely contains the object but the segmentation is not perfect
+yet, we keep on checking its children nodes to refine the
+segmentation. The final case is that the similarity is between
+$thre\_pos$ and $thre\_neg$, which means we are not sure whether
+there is an object in the node, so we just keep on searching its
+children.
 
 The object detection is based on the output of ADDITIVE\_PRUNE. If the output is not NULL, which means at least one node in the tree has similarity above $thre\_pos$, we think the object is detected in this image.
 
@@ -331,14 +386,14 @@ The object detection is based on the output of ADDITIVE\_PRUNE. If the output is
 
 \begin{algorithm}
 \begin{algorithmic}
-  \STATE \textbf{input:} 
+  \STATE \textbf{input:}
   \STATE \hspace{3 mm} node $n$ in segmentation tree
   \STATE \hspace{3 mm} desired object model $obj\_model$
   \STATE \hspace{3 mm} threshold for perfect segment $thre\_perf$
   \STATE \hspace{3 mm} threshold for positive segment $thre\_pos$
   \STATE \hspace{3 mm} threshold for negative segment $thre\_neg$
-  \STATE \textbf{output:} 
-  \STATE \hspace{3 mm} refined segment 
+  \STATE \textbf{output:}
+  \STATE \hspace{3 mm} refined segment
   \STATE
   \STATE $sim=HI(obj\_model,n.conf)$
   \IF{$sim \ge thre\_perf$}
@@ -348,7 +403,7 @@ The object detection is based on the output of ADDITIVE\_PRUNE. If the output is
     \STATE return $NULL$
   \ENDIF
   \STATE $s'=NULL$
-  \FOR{$i=1$ to $n.childNum$} 
+  \FOR{$i=1$ to $n.childNum$}
     \STATE s\{i\}=ADDITIVE\_PRUNE(n.children\{i\},obj\_model,...
     \STATE ... thre\_perf,thre\_pos,thre\_neg)
     \STATE s'=s'+s\{i\}
@@ -362,32 +417,35 @@ The object detection is based on the output of ADDITIVE\_PRUNE. If the output is
 \caption{ADDITIVE\_PRUNE}
 \label{alg:add_prune}
 \end{algorithm}
- 
+
 
 
 \subsection{Subtractive algorithm}
 
 The subtractive algorithm relies on the idea that if removing a region from
 an image doesn't significantly affect the probability of the image containing
-the object (which probability is obtained using the predicted attribute 
+the object (which probability is obtained using the predicted attribute
 distribution and is here used interchangably used with the term ``similarity'')
 then that region can be safely removed in the final segmentation.
 The algorithm itself is shown in algorithm \ref{alg:sub_prune}.
 
 \begin{algorithm}
 \begin{algorithmic}
-  \STATE \textbf{input:} 
+  \STATE \textbf{input:}
   \STATE \hspace{3 mm} node $n$ in segmentation tree
   \STATE \hspace{3 mm} master mask $m_m$
   \STATE \hspace{3 mm} similarity $sim_{root}$ on root node
   \STATE \hspace{3 mm} factor $f$
+  \STATE \textbf{output:}
+  \STATE \hspace{3 mm} $m_m$
+  \STATE
   \STATE $m_n$ := mask of $n$
   \STATE $pred\_model$ := predict attributes on image($m_n \cap m_m$)
   \STATE $sim=HI(obj\_model,pred\_model)$
   %\STATE $H_{pred}$ := predict attributes on image($m_n \cap m_m$)
   %\STATE $\displaystyle P_{pred} = \frac{H_{pattern} \cap H_{pred}}{H_{pattern} \cup H_{pred}}$
   \IF{$sim < f sim_{root}$}
-    \FOR{$i=1$ to $n.childNum$} 
+    \FOR{$i=1$ to $n.childNum$}
       \STATE s\{i\}=SUBTRACTIVE\_PRUNE(n.children\{i\},$m_m$,
       \STATE ...$sim_{root}$, $f$)
     \ENDFOR
@@ -401,12 +459,12 @@ The algorithm itself is shown in algorithm \ref{alg:sub_prune}.
 \end{algorithm}
 
 The algorithm begins at the root of the tree and predicts attributes.
-This attribute distribution and its associated similarity $sim_{root}$ 
+This attribute distribution and its associated similarity $sim_{root}$
 to the object's canonical distribution is taken to be
 the standard for the image.  That is, any final segmentation should not have
 significantly less similarity $sim$ than $sim_{root}$.  The algorithm traverses
-the subtractive tree depth-first, predicting on each node.  
-Any node that doesn't have a significant negative effect on the similarity as 
+the subtractive tree depth-first, predicting on each node.
+Any node that doesn't have a significant negative effect on the similarity as
 compared to the standard is removed.  If the
 similarity was significantly affected, then we know that the region
 must remain.  But it doesn't mean that sub-regions might not be able to be pruned
@@ -424,7 +482,7 @@ $f$ makes it more liberal.  We found $f=0.9$ to be a reasonable value for most i
 Figure \ref{fig:f} shows results of adjusting $f$ between 0.9 and 1.0.
 
 The runtime performance of the algorithm is dominated by the prediction step.
-Thus the advantage of pruning large chunks early is highly beneficial to 
+Thus the advantage of pruning large chunks early is highly beneficial to
 the runtime of the algorithm.
 
 \begin{figure}
@@ -436,13 +494,12 @@ the runtime of the algorithm.
 \subfigure[]{
 \label{fig:fb}
 \includegraphics[width=0.22\textwidth]{figures/parking_1.0.eps}
-}
-\caption{Result of adjusting the factor $f$ in the subtractive algorithm.
-\subref{fig:fa} shows running the algorithm with $f=0.9$ and \subref{fig:fb}
-shows running the algorithm with $f=1.0$.  Note that \subref{fig:fb} retains
-more of the cars, especially the two closest on the right and left, but also
-hsa more false-positive pixels, such as the ceiling region of the parking
-garage.}
+} \caption{Result of adjusting the factor $f$ in the subtractive
+algorithm. \subref{fig:fa} shows running the algorithm with $f=0.9$
+and \subref{fig:fb} shows running the algorithm with $f=1.0$.  Note
+that \subref{fig:fb} retains more of the cars, especially the two
+closest on the right and left, but also has more false-positive
+pixels, such as the ceiling region of the parking garage.}
 \label{fig:f}
 \end{figure}
 
@@ -452,22 +509,38 @@ garage.}
 \section{Experimental results}
 \label{sec:results}
 
-In this section, we evaluate our attribute based object detection and segmentation algorithm. We will answer four questions. (1) What is the performance of object detection and segmentation? (2) What is the influences of different parameters? (3) What are the advantages of the two pruning algorithms? (4) Is vertical confidence propogation useful? 
+In this section, we evaluate our attribute based object detection
+and segmentation algorithm. We will answer four questions. (1) What
+is the performance of object detection and segmentation? (2) What is
+the influences of different parameters? (3) What are the advantages
+of the two pruning algorithms? (4) Is vertical confidence
+propagation useful? (In this draft, we only have partial results, so
+not all the questions are considered.)
 
 %\subsection{Dataset}
 %\label{ssec:dataset}
 
-We use the Pascal2008 dataset.  The attribute annotations used in \cite{farhadi09}
-are freely available and we used them for training the attributes.
+We use the Pascal2008 dataset. This dataset has a lot of real life
+images which are more difficult to classify. The objects are labeled
+by bounding boxes not accurate segmentation. For training the
+attributes, we use the pascal2008 training set. The attribute
+annotations used in \cite{farhadi09} are freely available and we
+used them for training too. For testing the classification and
+segmentation, we use the pascal2008 validation set. We plan to do
+three classes classification and segmentation, including car,
+aeroplane and horse. Now we only got the results on car. We will
+incorporate the other classes in the final version.
 
-\ref{table:aresults} shows some of the results from running the additive algorithm
-on all cars in the dataset.  The recall is the rate of correctly detecting
-images with cars.  The segmentation precision is calculated with
-\[ V(M_{model},M_{pred}) = \frac{|M_{model} \cap M_{pred}|}{|M_{model} \cup M_{pred}|} \]
-where $M_{model}$ is the model mask calculated from the bounding boxes
-stored with the annotations and $M_{pred}$ is the predicted segmentation
-mask.  We of course recognize that the bounding boxes are not a good measure
-of segmentation truth, but it's the best we have available.
+Table \ref{table:aresults} shows some of the results from running
+the additive algorithm on all cars in the dataset.  The recall is
+the rate of correctly detecting images with cars.  The segmentation
+precision is calculated with
+\[ V(M_{groundtruth},M_{pred}) = \frac{|M_{groundtruth} \cap M_{pred}|}{|M_{groundtruth} \cup M_{pred}|} \]
+where $M_{groundtruth}$ is the groundtruth mask calculated from the
+bounding boxes stored with the annotations and $M_{pred}$ is the
+predicted segmentation mask.  We of course recognize that the
+bounding boxes are not a good measure of segmentation truth, but
+it's the best we have available.
 
 The segmentation precision for the additive algorithm
 is far better than the precision for the subtractive algorithm (which averaged
@@ -479,26 +552,29 @@ the image and proceeds no matter how poor the initial similarity score is.
 (For the final paper we expect to have results comparing the precision
 of the two algorithms based only on images segmented by both.)
 
-Figures \ref{fig:good_results} and \ref{fig:bad_results} show the results
-of segmentations of various images by both images.  This shows clear linkage
-between prominence of the side profile of the car and success of the segmentation.
-It appears that the attribute classifiers are more accurate on side profiles
-than front and rear shots, although rear shots performed reasonably well when
-tail lights were not illuminated.
+Figures \ref{fig:good_results} and \ref{fig:bad_results} show the
+results of segmentations of various images by both pruning
+algorithms. Figure \ref{fig:good_results} shows some good results,
+while Figure \ref{fig:bad_results} shows some bad results. This
+shows clear linkage between prominence of the side profile of the
+car and success of the segmentation. It appears that the attribute
+classifiers are more accurate on side profiles than front and rear
+shots, although rear shots performed reasonably well when tail
+lights were not illuminated.
 
 \begin{table}
 \centering
-\begin{tabular}{|l|l|l|l|}
+\begin{tabular}{|l|l|l|}
+\hline Parameter & recall & prec \\
+\hline 0.8,0.4,0.1  & 0.4317 & 0.2393 \\
+\hline 0.8,0.4,0.15  & 0.3849 & 0.2370 \\
+\hline 0.8,0.6,0.15  & 0.2720 & 0.2501 \\
 \hline
-$P$ & $D$ & recall & prec \\ \hline
-4, 1 & 227 & 0.4317 & 0.2393 \\ \hline
-4, 1.5 & 239 & 0.3849 & 0.2370 \\ \hline
-6, 1.5 & 239 & 0.2720 & 0.2501 \\ \hline
 \end{tabular}
-\caption{Results from the additive algorithm on all car images.  $P$ is
-the parameters, $D$ is the number of detections, recall is the detection
-recall rate and prec is the segmentation precision on all detected
-images.}
+\caption{Results from the additive algorithm on all car images.
+Parameter contains the three threshold, $thre\_perf$, $thre\_pos$
+and $thre\_neg$, recall is the object detection recall rate and prec
+is the segmentation precision on all detected images.}
 \label{table:aresults}
 \end{table}
 
@@ -518,7 +594,7 @@ images.}
 \includegraphics[width=3.95cm]{figures/results/b2008_000952.jpg.eps} &
 \includegraphics[width=3.95cm]{figures/results/b2008_002198.jpg.eps} \\
 \end{tabular}
-\caption{Selected results from segmentation of cars from the Pascal2008 
+\caption{Selected results from segmentation of cars from the Pascal2008
 dataset.  The first row shows the original image.  The second row shows
 the best segmentation from the additive algorithm.  The third row shows
 the segmentation from the subtractive algorithm with $f=0.9$.}
@@ -542,7 +618,7 @@ Car not detected &
 \includegraphics[width=3.95cm]{figures/results/b2008_005378.jpg.eps} &
 \includegraphics[width=3.95cm]{figures/results/b2008_007529.jpg.eps} \\
 \end{tabular}
-\caption{Selected results from segmentation of cars from the Pascal2008 
+\caption{Selected results from segmentation of cars from the Pascal2008
 dataset.  The first row shows the original image.  The second row shows
 the best segmentation from the additive algorithm.  The third row shows
 the segmentation from the subtractive algorithm with $f=0.9$.}
@@ -559,9 +635,9 @@ are able to segment out rough outlines of the objects.  In most cases, even
 the more difficult ones, at least part of the car was present in the final
 segmentation.  This shows that the segmentation algorithms appear to be
 reasonable approximations to a combinatoric approach -- that of predicting
-on every combination of regions in the image.  
+on every combination of regions in the image.
 
-Despite these encouraging initial results, the final segmentation region 
+Despite these encouraging initial results, the final segmentation region
 was often not coherent.
 This appears to be largely because the region tree approach is not
 constrained by spatial coherence.  That is, two leaf nodes containing image
@@ -579,7 +655,7 @@ As object detection is generally only as good as the features used, so also it
 appears that this approach to segmentation is only as good as the attribute
 selection and training.  We found that in images with poor segmentations, the
 confidences in prediction of car attributes were generally low.  One problem
-with this implementation of attribute classifiers was that we didn't use 
+with this implementation of attribute classifiers was that we didn't use
 the selection criterion described in \cite{farhadi09} that enhances within
 category prediction ability.  This means that, for example, the wheel attribute
 is highly similar to the car attribute and thus its discrimative ability
@@ -602,6 +678,17 @@ of attribute coherence.  If this can be achieved, then segmentation experiments
 could open up to non-experts, who could define coherence measures based on
 semantic attributes and then could use this approach to automatically segment large
 numbers of images even if no detection of their desired object exists.
+
+Another problem with the attribute based method is that the attributes are not discriminative 
+enough to separate different objects. For example, if we use the general attributes of head, torso and leg to 
+do the object classification, we cannot separate dog and cat, since both of them have all of the attributes. 
+But those attributes can definitely separate the two objects from non-animal objects, such as car. This example demonstrates that 
+attributes are helpful for the object classification, but they are not discriminative enough. So one way to deal with this is to use 
+both attributes features and low level objects features for object classification. We can train a general attributes models first. 
+When we want to classify some specific objects, we can incorporate a small number of low level features from the specific object samples to the attributes 
+features. In this way, we both reduce the training samples for object classification, and make the attribute based method more discriminative.
+
+
 
 \subsection*{Acknowledgements}
 Thanks to the authors of \cite{arbelaez09} and \cite{farhadi09} for use of their

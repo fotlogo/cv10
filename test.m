@@ -199,6 +199,13 @@ if (TRAIN==1)
     att = attributes_train(:,i);
     att_pos=find(att==1);
     
+    rand('seed',1);
+
+    if length(att_pos)>500
+        rand_temp=randperm(length(att_pos));
+        att_pos=att_pos(rand_temp(1:500));
+    end
+    
     % change attributes mask
     %if length(att_pos)<att_train_thre
     %  atts_mask(i)=0;
@@ -206,8 +213,8 @@ if (TRAIN==1)
 
     att_neg=find(att==0);
     if ((length(att_neg)/length(att_pos))>((1-ratio)/ratio))
-        rand_temp=randperm(floor(length(att_pos)/ratio*(1-ratio)));
-        att_neg=att_neg(rand_temp);
+        rand_temp=randperm(length(att_neg));
+        att_neg=att_neg(rand_temp(1:floor(length(att_pos)/ratio*(1-ratio))));
     end
     if length(att_pos)==0
         features_temp=features_train;
@@ -382,15 +389,16 @@ if (SEGMENTATION)
   %temp = 'goat_12.jpg';
   %temp = 'bag_377.jpg';
 
-  image_set = 'ayahoo_test';
-  %image_set = 'apascal';
+  %image_set = 'ayahoo_test';
+  image_set = 'apascal';
   gPbdir = [BasePath,'out/',image_set,'_images/processed/gPb'];
   img_dir = [BasePath,'data/',image_set,'_images'];
   hog_dir = [BasePath,'out/',image_set,'_images/processed/hog'];
   tc_dir = [BasePath,'out/',image_set,'_images/processed/tc2'];
 
-  temp = 'monkey_220.jpg';
-  temp = 'monkey_221.jpg';
+  %temp = 'monkey_220.jpg';
+  %temp = 'monkey_221.jpg';
+  temp='2008_007214.jpg';
   
   %img_name = regexprep(char(names_test(1)), '\.jpg', '');
   %img_fn = fullfile(img_dir, char(names_test(1)));
@@ -405,15 +413,40 @@ if (SEGMENTATION)
   [img, ucm2, mask2] = gPb(img_fn, sprintf('out/%s_images/processed',image_set));
 
   base_name = regexprep(char(temp), '.jpg', '');
-  out_dir = [BasePath,'/out/',base_name];
+  out_dir = [BasePath,'out/',base_name];
   if (exist(out_dir, 'dir') ~= 7)
     mkdir(out_dir);
   end
   
 % attStruct is the structure with attributes hierarchy
-  attStruct=hierarchy(img, img_name, svm, mask2, ucm2, depth, '', @visitor);
+  %attStruct=hierarchy(img, img_name, svm, mask2, ucm2, depth, '', @visitor);
+  
+  load(['/u/atian/attStruct.mat']);
+  attStruct2=hierarchyMod(img, img_name, svm, mask2, ucm2, depth, '', attStruct);
 
   %img_name = regexprep(char(temp), 'jpg', 'mat');
-  save([out_dir,'/attStruct'], 'attStruct');
+  %save([out_dir,'/attStruct'], 'attStruct');
+
+  % TODO
+  % define the pattern of car model
+  car_pattern=[1,2,25,27,28,29,30,31,32,53,62];
+  car_model=zeros(1,num_atts);
+  car_model(car_pattern)=1;
+  % give some threshold of attribute probability
+  att_thre=0.5;
+  model_sim_thre=0.4;
+  model_sim_min=0.1;
+  % calculate histogram intersection
+  % find the node first then prune
+  %attStruct.obj=0;
+  obj_seg=[];
+  [attStructPrune,obj_seg]=pruneHier(attStruct,att_thre,model_sim_thre,model_sim_min,car_model,obj_seg,0);
+  
+  img=imread([img_dir,'/',img_name,'.jpg']);
+  img(:,:,1)=img(:,:,1).*uint8(obj_seg.mask);
+  img(:,:,2)=img(:,:,2).*uint8(obj_seg.mask);
+  img(:,:,3)=img(:,:,3).*uint8(obj_seg.mask);
+  figure,imshow(img)
+  
   
 end
