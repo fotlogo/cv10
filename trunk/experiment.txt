@@ -4,6 +4,7 @@ Data vision final project
 
 Attributes classification:
 
+# ayahoo dataset
 Training, Testing, Gaussian, ratio, total precision, pos precision, neg precision
 2000, 500, 1, 0.3, 0.91, 0.56, 0.93
 2000, 500, 5, 0.3, 0.86, 0.60, 0.88
@@ -17,4 +18,18 @@ Training, Testing, Gaussian, ratio, total precision, pos precision, neg precisio
 
 
 
- 
+# apascal dataset
+Training, Testing, Gaussian, ratio, total precision, pos precision, neg precision
+
+all(<=500 pos), all, 1, 0.5, 0.78, 0.72, 0.77
+all(<=500 pos), all, 5, 0.5, 0.72, 0.71, 0.72
+all(<=500 pos), all, 20, 0.5, 0.71, 0.69, 0.70
+all(<=500 pos), all, 200, 0.5, 0.71, 0.70, 0.71
+all(<=500 pos), all, 10000, 0.5, 0.76, 0.74, 0.76
+all(<=500 pos), all, 1, 0.3, 0.87, 0.49, 0.91
+all(<=500 pos), all, 5, 0.3, 0.81, 0.57, 0.83
+all(<=500 pos), all, 20, 0.3, 0.79, 0.57, 0.81
+all(<=500 pos), all, 200, 0.3, 0.79, 0.57, 0.81
+
+
+

@@ -43,12 +43,12 @@ att_sort=sort_idx(sort_value>0);
 atts(att_sort)
 sort_value(sort_value>0)
 
-base_name = regexprep(char(img_name), '.jpg', '');
-fid = fopen(sprintf('out/%s/atts%s.txt', base_name, path), 'w');
-atts_sorted = atts(att_sort);
-sort_value = sort_value(sort_value>0);
-for i=1:size(att_sort(:))
-  fprintf(fid, '%1.3f %s\n', sort_value(i), atts_sorted{i});
-end
-fclose(fid);
+% base_name = regexprep(char(img_name), '.jpg', '');
+% fid = fopen(sprintf('out/%s/atts%s.txt', base_name, path), 'w');
+% atts_sorted = atts(att_sort);
+% sort_value = sort_value(sort_value>0);
+% for i=1:size(att_sort(:))
+%   fprintf(fid, '%1.3f %s\n', sort_value(i), atts_sorted{i});
+% end
+% fclose(fid);
 
