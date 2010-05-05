@@ -98,13 +98,6 @@ declare the combined region an accurate segmentation for that object.
 
 \begin{figure}
 \centering
-\includegraphics[width=0.5\textwidth]{figures/flowchart.eps}
-\caption{Flowchart of the proposed algorithm.} \label{fig:flowchart}
-\end{figure}
-
-
-\begin{figure}
-\centering
 \subfigure[]{
 \includegraphics[width=0.22\textwidth]{figures/truck_orig_med.eps}
 \label{fig:trucka}
@@ -223,6 +216,13 @@ Kumar et al \cite{kumar05} incorporate shape structure into the segmentation by
 adding a latent shape parameter to the CRF.  This seems like it would be
 a useful addition to our system but make the scope too large.
 
+\begin{figure}
+\centering
+\includegraphics[width=0.5\textwidth]{figures/flowchart.eps}
+\caption{Flowchart of the proposed algorithm.} \label{fig:flowchart}
+\end{figure}
+
+
 %-------------------------------------------------------------------------------
 % technical approach
 %-------------------------------------------------------------------------------
@@ -282,21 +282,34 @@ produces a hierarchical segmentation by first detecting contours
 using the \emph{gPb} detector \cite{maire08}.  Once the contours are
 detected, regions are discovered using a watershed algorithm after
 which an Ultrametric Contour Map (UCM) is constructed, which defines
-the region hierarchy. Some example of the hierarchy segmentation is
-shown in Figure \ref{fig:tree}.
+the region hierarchy.  The UCM is stored as a grayscale image with
+contours around the segmented regions.  These contours have intensities
+representative of the region's location in the hierarchy.  So to find
+the first branch in the tree, threshold the UCM image with a value
+$t$ where $t = max{I(x,y)}$ where $I(x,y)$ is the intensity at pixel
+location $(x,y)$.  The thresholded image can then be flood-filled into
+regions.  These regions correspond to the branches on either side of
+the root node in the segmentation tree.  The next level of the tree is
+found by thresholding the UCM at the next highest intensity and so on.
+Figure \ref{fig:ucm} shows an example UCM image and figure \ref{fig:tree}
+shows the hierarchy generated from that UCM.
 
-After the construction of hierarchy segmentation tree, we detect all
-the attributes in each node, including the intermediate node and
-leaf node. We use the output of SVM as the confidence (not binary),
+After the construction of segmentation tree, we detect all
+the attributes in each node, including the intermediate and
+leaf nodes. We use the output of SVM as the confidence (not binary),
 so each node can be represented by the confidence distribution of
-all attributes.
+all attributes.  These distributions are stored and later used in
+the additive pruning algorithm.  Unfortunately the subtractive algorithm
+requires runtime predictions, and thus cannot use this preprocessing
+step.
+
 
 
 \section{Object Detection and Segmentation}
 \label{sec:detection}
 
-Our objective is to detect object and segment it out. In our
-hierarchy segmentation tree, the problem changes to how to select
+Our objective is to detect objects and segment them out. In our
+segmentation tree, the problem changes to how to select
 those nodes belong to the desired object. We estimate the
 probability that a node is belong to object based on the attribute
 confidence distribution. For each object, we manually give the
@@ -330,22 +343,28 @@ weakness.  The first is a semi-greedy additive approach which uses the additive
 tree.  The second is a greedy subtractive approach.  We now discuss each of these
 in detail.
 
-\begin{figure*}
+\begin{figure}
 \centering
-\subfigure[]{
-\label{fig:treea}
+\includegraphics[width=0.30\textwidth]{figures/2008_000052_ucm.bmp.eps}
+\caption{A UCM image from which a segmentation tree is derived.}
+\label{fig:ucm}
+\end{figure}
+
+\begin{figure}
+\centering
+%\subfigure[]{
+%\label{fig:treea}
 \includegraphics[width=0.45\textwidth]{figures/tree_additive.eps}
-}
-\subfigure[]{
-\label{fig:treeb}
-\includegraphics[width=0.45\textwidth]{figures/tree_subtractive.eps}
-}
-\caption{The two segmentation hierarchies used by the additive \subref{fig:treea}
-and subtractive \subref{fig:treeb} algorithms.  The additive hierarchy breaks the
-regions into smaller and smaller regions, while the subtractive hierarchy increases
-the size of the regions as smaller and smaller chunks are removed from the image.}
+%}
+%\subfigure[]{
+%\label{fig:treeb}
+%\includegraphics[width=0.45\textwidth]{figures/tree_subtractive.eps}
+%}
+\caption{The segmentation hierarchy used by the additive
+and subtractive algorithms.  This tree was generated from the UCM
+in figure \ref{fig:ucm}.}
 \label{fig:tree}
-\end{figure*}
+\end{figure}
 
 \subsection{Additive algorithm}
 \label{ssec:additive}
@@ -355,7 +374,7 @@ one node in the segmentation tree contrains the whole object. (This
 is always true since the root node contains the whole image). (2) If
 both parent node and child node have high confidence of containing
 the object, the segmentation of the child node is more accurate than
-that of the parrent node. (3) Even if some node has high confidence
+that of the parent node. (3) Even if some node has high confidence
 of containing the object, its segmentation can still be improved by
 removing irrelevant children node. The details of the additive
 algorithm is shown in algorithm \ref{alg:add_prune}.
@@ -437,10 +456,11 @@ The algorithm itself is shown in algorithm \ref{alg:sub_prune}.
   \STATE \hspace{3 mm} similarity $sim_{root}$ on root node
   \STATE \hspace{3 mm} factor $f$
   \STATE \textbf{output:}
-  \STATE \hspace{3 mm} $m_m$
+  \STATE \hspace{3 mm} mask $m_m$
   \STATE
   \STATE $m_n$ := mask of $n$
-  \STATE $pred\_model$ := predict attributes on image($m_n \cap m_m$)
+  \STATE $r = m_{m} \cap \verb+~+ m_{n}$
+  \STATE $pred\_model$ := predict attributes on image($r$)
   \STATE $sim=HI(obj\_model,pred\_model)$
   %\STATE $H_{pred}$ := predict attributes on image($m_n \cap m_m$)
   %\STATE $\displaystyle P_{pred} = \frac{H_{pattern} \cap H_{pred}}{H_{pattern} \cup H_{pred}}$
@@ -451,7 +471,7 @@ The algorithm itself is shown in algorithm \ref{alg:sub_prune}.
     \ENDFOR
     %\STATE SUBTRACTIVE\_PRUNE(n.children)
   \ELSE
-    \STATE $m_m = m_m \cap m_n$
+    \STATE $m_m = m_m \cap \verb+~+ m_n$
   \ENDIF
 \end{algorithmic}
 \caption{SUBTRACTIVE\_PRUNE}
@@ -463,27 +483,44 @@ This attribute distribution and its associated similarity $sim_{root}$
 to the object's canonical distribution is taken to be
 the standard for the image.  That is, any final segmentation should not have
 significantly less similarity $sim$ than $sim_{root}$.  The algorithm traverses
-the subtractive tree depth-first, predicting on each node.
-Any node that doesn't have a significant negative effect on the similarity as
-compared to the standard is removed.  If the
-similarity was significantly affected, then we know that the region
-must remain.  But it doesn't mean that sub-regions might not be able to be pruned
+the subtractive tree depth-first.  At each node, attributes are predicted for 
+a region $r$.  
+$r$ is obtained by taking the intersection of the master mask and the inverted
+node mask ($r = m_{m} \cap \verb+~+ m_{n}$).  The intuition is this: the master mask is our current best guess at
+the region that contains an object.  By taking the intersection, we effectively
+subtract the node's region out.
+We can then predict on the new region.  If 
+there is no significant negative effect on the similarity as
+compared to the standard, then we assume that we can safely prune off the node's
+region without removing a part of the object..  If the
+similarity was significantly affected, then we assume that the region
+contains some part of the object and we allow it to remain.  But that 
+doesn't mean that sub-regions might not be able to be pruned
 out, so the procedure is called recursively, checking for smaller regions
 that might be able to be pruned.
 
-If the probability was not significantly affected, then the mask is applied
+As mentioned, if the similarity score was not significantly affected by
+predicting on the master mask with the region removed, then the region is
+permanently removed from the master mask
 and no recursive call is made.  This is important, because it means
 that we can remove large chunks of the image wholesale and bypass predicting
 on the node's posterity.
+The runtime performance of the algorithm is dominated by the prediction step.
+Thus the advantage of pruning large chunks early is highly beneficial to
+the runtime of the algorithm.
 
 $f$ is an important parameter that requires tuning.  Increasing $f$ makes the
 algorithm more conservative, that is, less likely to apply removals.  Decreasing
 $f$ makes it more liberal.  We found $f=0.9$ to be a reasonable value for most images.
 Figure \ref{fig:f} shows results of adjusting $f$ between 0.9 and 1.0.
 
-The runtime performance of the algorithm is dominated by the prediction step.
-Thus the advantage of pruning large chunks early is highly beneficial to
-the runtime of the algorithm.
+The subtractive algorithm knows nothing about the number of objects present
+in the image.  It attempts to segment any object out into the final region.
+This is evident in figure \ref{fig:sub1}.  The mobile homes in the background
+have car attributes and thus are included in the final segmentation, even
+though they take a far less prominent role in the unsegmented image.  Another
+example is figure \ref{fig:truck}, where the two cars visually behind the truck
+are segmented alongside the truck.
 
 \begin{figure}
 \centering
@@ -501,6 +538,24 @@ that \subref{fig:fb} retains more of the cars, especially the two
 closest on the right and left, but also has more false-positive
 pixels, such as the ceiling region of the parking garage.}
 \label{fig:f}
+\end{figure}
+
+\begin{figure}
+\centering
+\subfigure[]{
+\label{fig:sub1a}
+\includegraphics[width=0.22\textwidth]{figures/results/2008_000052.jpg.eps}
+}
+\subfigure[]{
+\label{fig:sub1b}
+\includegraphics[width=0.22\textwidth]{figures/2008_000052_1.00.jpg.eps}
+} \caption{Subtractive segmentation on an image with multiple objects.
+An observer may not even notice the trailer homes in the background in
+the original image \subref{fig:sub1a},
+but the segmentation includes a portion of them in the final segmentation \subref{fig:sub1b}.
+Subtractive segmentation attempts to segment all objects present
+in the image.}
+\label{fig:sub1}
 \end{figure}
 
 %-------------------------------------------------------------------------------
