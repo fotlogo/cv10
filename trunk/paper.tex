@@ -91,10 +91,21 @@ Image segmentation is a very different field of research and has a very differen
 goal - that of finding very accurate boundaries of objects in an image.
 
 Our work focuses on leveraging attributes to produce accurate segmentations.
-The idea is to find image regions with salient attribute distributions.  If
-these regions can be combined together to for larger regions with attribute
-distributions matching some object's canonical distribution then one can
+The idea is to find image regions with attribute distributions very similar
+to some canonical distribution for an object.  We define the ``canonical distribution''
+to be an attribute distribution representative of that object.  For example, the
+canonical distribution for a ``car'' would have some measure of ``shininess'', some
+other measure of ``window'' and so forth.  If
+regions can be combined together to for larger regions with attribute
+distributions matching the object's canonical distribution then one can
 declare the combined region an accurate segmentation for that object.
+
+We note that it is possible that one segmented region may contain the object and
+nothing else.  Though possible, in practice it is highly unlikely.  Even for rather
+simple objects, the true region of the object is distributed among various
+segmentations.  This is because all but the most trivial objects have different
+sub-regions of different colors, textures, contours, etc.  Thus we must search
+for a combination of these sub-regions that make up the object.
 
 \begin{figure}
 \centering
@@ -106,7 +117,8 @@ declare the combined region an accurate segmentation for that object.
 \includegraphics[width=0.22\textwidth]{figures/truck_final_med.eps}
 \label{fig:truckb}
 }
-\caption{Segmentation by maximizing attribute saliency.  \subref{fig:trucka} shows
+\caption{Segmentation by maximizing attribute similarity to a canonical
+attribute distribution for a car.  \subref{fig:trucka} shows
 the original image with any ``car'' attributes that were predicted.  $P$ is the probability
 that the image contains a car.  \subref{fig:truckb} shows the segmented image after
 running our segmentation tree pruning algorithm.  As extraneous regions are pruned
@@ -115,14 +127,17 @@ contains a car increases.}
 \label{fig:truck}
 \end{figure}
 
-In practice, however, the testing of all combinations of regions to
+In general, the testing of all combinations of regions to
 find objects is intractable.  We use two approximatory algorithms
-operating on a segmentation hierarchy to determine salient regions.
-Both are subtractive algorithms, which first predict attributes on
-the entire region and then proceed by observing the effects of
+operating on a segmentation hierarchy to determine regions belonging
+to a given class.
+One algorithm is additive and operates by combining regions that are likely
+to be part of the object.  The other is subtractive, which first predict attributes on
+the entire region and then proceeds by observing the effects of
 removing different regions during a top-down traversal of the tree.
 The benefit of using these methods are that large regions that
-clearly don't contribute to attribute saliency can be pruned from
+clearly don't contribute to an attribute distribution similar to the
+canonical can be pruned from
 the tree early in the traversal.  This approach avoids the
 combinatoric complexity of a full search and, even more, prunes many
 regions from the segmentation tree before they even are searched,
@@ -131,9 +146,13 @@ $O(n)$ where $n$ is the number of leaves in the segmentation tree.
 The flowchart of our algorithm is shown in Figure
 \ref{fig:flowchart}.
 
+This work is done using attributes as the features, but the segmentation
+pruning algorithms are actually feature-type agnostic and could be used
+with any image feature given a scoring function applicable to that feature.
+
 While we focus on segmentation of known objects, we anticipate an application
 that takes more advantage of attributes: that of segmenting \emph{unknown}
-objects from an image that exhibit salient but unrecognized attribute
+objects from an image that exhibit stable but unrecognized attribute
 distributions.  This type of application brings out some of the true power of
 attributes, that of assigning semantic meaning to unknown, segmented objects.
 
@@ -147,9 +166,6 @@ attributes, that of assigning semantic meaning to unknown, segmented objects.
 %-------------------------------------------------------------------------------
 \section{Related work}
 \label{sec:related_work}
-[Note: this section was lifted straight from our extended abstract
-and has not yet been updated to reflect what we actually did.]
-
 A significant amount of recent work has been done in the area of using
 attributes as high-level features for image classification and object
 description \cite{farhadi09, lampert09, kumar09}.
@@ -197,24 +213,22 @@ Borenstein et al \cite{borenstein04} proposed a method of combining top-down
 and bottom-up information to generate a high-quality segmentation.  Their
 approach to the top-down is to use exemplar image fragments and match them
 to the image and then refining the top-down segmentation using their
-segmentation hierarchy.  Our approach is very similar to this in spirit.
-While our initial estimate of segmentation is from the bottom-up (while
-theirs is from the top-down) we will use the hierarchical information
-from the segmentation to boost confidences of segmentation at the lowest
-level, similar to what they do.
+segmentation hierarchy.  Our approach doesn't use any confidence boosting based
+on the hierarchy like they do, but rather, the hierarchy is used to guide
+efficient removal and combination of regions.
 
-Another interesting work is that of Gould et al \cite{gould08}.  They use
-superpixels for an initial segmentation, build a CRF that includes a
-relative location feature in the energy function and minimizes the CRF
-for a final segmentation.  The relative location feature is determined
-using prior location probability maps.  Our approach is similar to this
-as well, in that we will also incorporate relative location information,
-although ours will use attributes' relative locations rather than object
-classes.  We will also use a CRF for the final segmentation, but will
-use a min-cut solution since our labels are binary.
-Kumar et al \cite{kumar05} incorporate shape structure into the segmentation by
-adding a latent shape parameter to the CRF.  This seems like it would be
-a useful addition to our system but make the scope too large.
+%Another interesting work is that of Gould et al \cite{gould08}.  They use
+%superpixels for an initial segmentation, build a CRF that includes a
+%relative location feature in the energy function and minimizes the CRF
+%for a final segmentation.  The relative location feature is determined
+%using prior location probability maps.  Our approach is similar to this
+%as well, in that we will also incorporate relative location information,
+%although ours will use attributes' relative locations rather than object
+%classes.  We will also use a CRF for the final segmentation, but will
+%use a min-cut solution since our labels are binary.
+%Kumar et al \cite{kumar05} incorporate shape structure into the segmentation by
+%adding a latent shape parameter to the CRF.  This seems like it would be
+%a useful addition to our system but make the scope too large.
 
 \begin{figure}
 \centering
@@ -254,10 +268,10 @@ Clear & Shiny & Vegetation & Leather \\
 \label{fig:atts}
 \end{figure}
 
-We use similar algorithm as \cite{farhadi09} to train the attribute models. Three different type of features are used, such as HOG, texture and color descriptors\cite{farhadi09}. Those features can capture different properties. We use kmeans to quantize all the features. The HOG descriptors are quantized into 1000 clusters, and the texture and color are quantized to 256 and 128 clusters, respectively. All the quantized features are concatenated to form the 1384 deminsional feature.
+We use a similar algorithm to that used in \cite{farhadi09} to train the attribute models. Three different type of features are used: HOG, texture and color descriptors \cite{farhadi09}.  We use kmeans to quantize the features. The HOG descriptors are quantized into 1000 clusters, and the texture and color are quantized to 256 and 128 clusters, respectively. All quantized features are concatenated to form a 1384 dimensional feature.  These low-level features are generated for training and testing datasets using the entire image.  This is done to avoid introducing any feature artifacts as a result of black space surrounding segmented regions.
 
-For training, we use SVM classifier with Gaussian kernel to train
-model for each attribute.
+For training, we use an SVM classifier with a Gaussian kernel to train
+the model for each attribute.  
 
 %The precision of all the attributes on the test set is illustrated
 %in figure?.
@@ -279,7 +293,9 @@ model for each attribute.
 
 We use the segmentation approach of \cite{arbelaez09}.  This
 produces a hierarchical segmentation by first detecting contours
-using the \emph{gPb} detector \cite{maire08}.  Once the contours are
+using the \emph{gPb} detector \cite{maire08}.  This contour detector
+is advantageous because it uses brightness, color and texture
+gradients at multiple scales.  Once the contours are
 detected, regions are discovered using a watershed algorithm after
 which an Ultrametric Contour Map (UCM) is constructed, which defines
 the region hierarchy.  The UCM is stored as a grayscale image with
@@ -290,7 +306,8 @@ $t$ where $t = max{I(x,y)}$ where $I(x,y)$ is the intensity at pixel
 location $(x,y)$.  The thresholded image can then be flood-filled into
 regions.  These regions correspond to the branches on either side of
 the root node in the segmentation tree.  The next level of the tree is
-found by thresholding the UCM at the next highest intensity and so on.
+found by thresholding the two new regions of the UCM at each, respective,
+next highest intensity and so on.
 Figure \ref{fig:ucm} shows an example UCM image and figure \ref{fig:tree}
 shows the hierarchy generated from that UCM.
 
@@ -308,12 +325,12 @@ step.
 \section{Object Detection and Segmentation}
 \label{sec:detection}
 
-Our objective is to detect objects and segment them out. In our
-segmentation tree, the problem changes to how to select
-those nodes belong to the desired object. We estimate the
-probability that a node is belong to object based on the attribute
-confidence distribution. For each object, we manually give the
-desired attribute distribution by common knowledge. We use the
+Our objective is to detect objects and segment them out. Using a segmentation tree
+we cast the problem into one of selecting nodes that belong 
+to the desired object. We estimate the
+probability that a node belongs to object based on the attribute
+confidence distribution. For each object, we manually determine a
+canonical attribute distribution.  We use the
 histogram intersection between the desired distribution and the
 estimated confidence distribution in each node as the similarity
 measure. The histogram intersection is calculated as follows:
@@ -324,24 +341,11 @@ measure. The histogram intersection is calculated as follows:
 where $H_{model}$ and $H_{pred}$ represent the desired attribute
 distribution and predicted distribution.
 
-To select the nodes, we propose two different top-down prune algorithms, additive algorithm and subtractive algorithm. We use the UCM to generate two types of region tree, shown in figure \ref{fig:tree}.
-The first tree is an additive tree, where regions are subdivided into successively
-smaller regions moving down in the tree.  We call it ``additive'' because the
-original image can be reconstructed by adding the regions from each leaf node
-together.  The figures show the nodes of the trees as containing images, but in
-truth the trees contain binary masks which, when applied to the original image,
-produce the shown node contents.
-
-The second tree is ``subtractive.''  The tree has identical structure to the additive
-tree and each node contains the inverse of the mask of the corresponding node
-in the additive tree.
-
-The final segmentation is obtained by pruning the region tree until a final segmentation
-meeting some criterion of absolute or relative attribute saliency is found.
-We have two methods for pruning the tree, each showing relative strengths and
-weakness.  The first is a semi-greedy additive approach which uses the additive
-tree.  The second is a greedy subtractive approach.  We now discuss each of these
-in detail.
+To select the nodes, we use two different top-down pruning algorithms, 
+the ``additive'' algorithm and the ``subtractive'' algorithm. 
+Each of these algorithms prunes the region tree until a final segmentation
+meeting some criterion of absolute or relative attribute similarity to the canonical is found.
+We now discuss each algorithm in detail.
 
 \begin{figure}
 \centering
@@ -566,7 +570,7 @@ in the image.}
 
 In this section, we evaluate our attribute based object detection
 and segmentation algorithm. We will answer four questions. (1) What
-is the performance of object detection and segmentation? (2) What is
+is the performance of object detection and segmentation? (2) What are
 the influences of different parameters? (3) What are the advantages
 of the two pruning algorithms? (4) Is vertical confidence
 propagation useful? (In this draft, we only have partial results, so
