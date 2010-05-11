@@ -37,23 +37,26 @@
 
 \begin{document}
 
-\title{Segmentation Using Attributes}
+\title{Attributes-based Object Classification and Segmentation}
 
-\author{Aibo Tian\\
+\author{Aibo Tian and John Edwards\\
+University of Texas at Austin\\
 %Institution1\\
 %Institution1 address\\
-{\tt\small atian@cs.utexas.edu}
+{\tt\small \{atian,edwardsj\}@cs.utexas.edu}
 % For a paper whose authors are all at the same institution,
 % omit the following lines up until the closing ``}''.
 % Additional authors and addresses can be added with ``\and'',
 % just like the second author.
 % To save space, use either the email address or home page, not both
-\and
-John Edwards\\
+%\and
+%John Edwards\\
 %Institution2\\
 %First line of institution2 address\\
-{\tt\small edwardsj@cs.utexas.edu}
+%{\tt\small edwardsj@cs.utexas.edu}
+%University of Texas at Austin\\
 }
+%University of Texas at Austin\\
 
 \maketitle
 \thispagestyle{empty}
@@ -106,6 +109,7 @@ simple objects, the true region of the object is distributed among various
 segmentations.  This is because all but the most trivial objects have different
 sub-regions of different colors, textures, contours, etc.  Thus we must search
 for a combination of these sub-regions that make up the object.
+
 
 \begin{figure}
 \centering
@@ -166,6 +170,13 @@ attributes, that of assigning semantic meaning to unknown, segmented objects.
 %-------------------------------------------------------------------------------
 \section{Related work}
 \label{sec:related_work}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.5\textwidth]{figures/flowchart.eps}
+\caption{Flowchart of the proposed algorithm.} \label{fig:flowchart}
+\end{figure}
+
 A significant amount of recent work has been done in the area of using
 attributes as high-level features for image classification and object
 description \cite{farhadi09, lampert09, kumar09}.
@@ -230,11 +241,11 @@ efficient removal and combination of regions.
 %adding a latent shape parameter to the CRF.  This seems like it would be
 %a useful addition to our system but make the scope too large.
 
-\begin{figure}
-\centering
-\includegraphics[width=0.5\textwidth]{figures/flowchart.eps}
-\caption{Flowchart of the proposed algorithm.} \label{fig:flowchart}
-\end{figure}
+%\begin{figure}
+%\centering
+%\includegraphics[width=0.5\textwidth]{figures/flowchart.eps}
+%\caption{Flowchart of the proposed algorithm.} \label{fig:flowchart}
+%\end{figure}
 
 
 %-------------------------------------------------------------------------------
@@ -243,7 +254,7 @@ efficient removal and combination of regions.
 \section{Attribute Detection}
 \label{sec:attribute}
 
-Attributes are high-level features which can reflect semantic properties of objects. Given the attributes, we can do object detection based on the their distribution. We use the same attribute set as \cite{farhadi09}. This set contains three types of attributes, including shape, part and material. All attributes are listed in figure \ref{fig:atts}.
+Attributes are high-level features which can reflect semantic properties of objects. Given the attributes, we can do object detection based on their distribution. We use the same attribute set as \cite{farhadi09}. This set contains three types of attributes, including shape, part and material. All attributes are listed in figure \ref{fig:atts}.
 
 \begin{figure}
 \begin{tabular}{llll}
@@ -568,58 +579,48 @@ in the image.}
 \section{Experimental results}
 \label{sec:results}
 
-In this section, we evaluate our attribute based object detection
-and segmentation algorithm. We will answer four questions. (1) What
-is the performance of object detection and segmentation? (2) What are
-the influences of different parameters? (3) What are the advantages
-of the two pruning algorithms? (4) Is vertical confidence
-propagation useful? (In this draft, we only have partial results, so
-not all the questions are considered.)
 
-%\subsection{Dataset}
-%\label{ssec:dataset}
+In this section, we evaluate our attribute based object classification
+and segmentation algorithm. We will also analyse the advantages and disadvantages of out algorithm.\\
 
-We use the Pascal2008 dataset. This dataset has a lot of real life
+\subsection{Dataset}
+\label{ssec:dataset}
+
+We use the Pascal2008 dataset for both training and testing. This dataset has a lot of real life
 images which are more difficult to classify. The objects are labeled
 by bounding boxes not accurate segmentation. For training the
 attributes, we use the pascal2008 training set. The attribute
 annotations used in \cite{farhadi09} are freely available and we
 used them for training too. For testing the classification and
-segmentation, we use the pascal2008 validation set. We plan to do
-three classes classification and segmentation, including car,
-aeroplane and horse. Now we only got the results on car. We will
-incorporate the other classes in the final version.
+segmentation, we use the pascal2008 validation set. Three classes are used in this experiment, including car,
+aeroplane and horse. We get 328 testing images, with car 150, aeroplane 103 and horse 93. Note that one image 
+can contain multiple objects in multiple classes.\\
 
-Table \ref{table:aresults} shows some of the results from running
-the additive algorithm on all cars in the dataset.  The recall is
-the rate of correctly detecting images with cars.  The segmentation
+\subsection{Measure}
+\label{ssec:measure}
+
+For object classification, we use precision and recall to measure the performance. 
+For segmentation, we use the ratio of intersection and union of the prediction and 
+groundtruth as the measure of precision. The segmentation
 precision is calculated with
 \[ V(M_{groundtruth},M_{pred}) = \frac{|M_{groundtruth} \cap M_{pred}|}{|M_{groundtruth} \cup M_{pred}|} \]
 where $M_{groundtruth}$ is the groundtruth mask calculated from the
 bounding boxes stored with the annotations and $M_{pred}$ is the
 predicted segmentation mask.  We of course recognize that the
 bounding boxes are not a good measure of segmentation truth, but
-it's the best we have available.
+it's the best we have available.\\
 
-The segmentation precision for the additive algorithm
-is far better than the precision for the subtractive algorithm (which averaged
-0.09).  This is because the additive algorithm only segments images for
-which it has predicted presence of a car, so that any image pruned by the
-algorithm already has a high car similarity score, enhancing the segmentation.
-The subtractive algorithm, on the other hand, assumes presence of a car in
-the image and proceeds no matter how poor the initial similarity score is.
-(For the final paper we expect to have results comparing the precision
-of the two algorithms based only on images segmented by both.)
+\subsection{Classification}
+\label{ssec:classification}
 
-Figures \ref{fig:good_results} and \ref{fig:bad_results} show the
-results of segmentations of various images by both pruning
-algorithms. Figure \ref{fig:good_results} shows some good results,
-while Figure \ref{fig:bad_results} shows some bad results. This
-shows clear linkage between prominence of the side profile of the
-car and success of the segmentation. It appears that the attribute
-classifiers are more accurate on side profiles than front and rear
-shots, although rear shots performed reasonably well when tail
-lights were not illuminated.
+Table \ref{table:aresults} shows the classification results comparing the proposed method with 
+the other three baseline methods. LowFea means that we use the low level feature to train and test 
+the object classification directly. Att1 means that we use the attribute distribution as the feature,
+but we only test it in the whole image without segmentation. Random means random prediction. Add is our
+proposed algorithm with additive pruning. The proposed algorithm has the highest precision comparing 
+with the other baselines, while the recall is a little lower than LowFea. Figure \ref{fig:roc_class} 
+shows the ROC curve for each class and the average.\\
+
 
 \begin{table}
 \centering
@@ -635,172 +636,249 @@ lights were not illuminated.
 \label{table:aresults}
 \end{table}
 
-\begin{figure*}[p]
-\centering
-\begin{tabular}{ p{4cm} p{4cm} p{4cm} p{4cm} }
-\includegraphics[width=3.95cm]{figures/results/2008_000052.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/results/2008_000828.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/results/2008_000952.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/results/2008_002198.jpg.eps} \\
-\includegraphics[width=3.95cm]{figures/results/a2008_000052.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/results/a2008_000828.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/results/a2008_000952.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/results/a2008_002198.jpg.eps} \\
-\includegraphics[width=3.95cm]{figures/results/b2008_000052.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/results/b2008_000828.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/results/b2008_000952.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/results/b2008_002198.jpg.eps} \\
-\end{tabular}
-\caption{Selected results from segmentation of cars from the Pascal2008
-dataset.  The first row shows the original image.  The second row shows
-the best segmentation from the additive algorithm.  The third row shows
-the segmentation from the subtractive algorithm with $f=0.9$.}
-\label{fig:good_results}
-\end{figure*}
 
-\begin{figure*}[p]
+\begin{figure}
 \centering
-\begin{tabular}{ p{4cm} p{4cm} p{4cm} p{4cm} }
-\includegraphics[width=3.95cm]{figures/results/2008_002483.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/results/2008_007466.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/results/2008_005378.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/results/2008_007529.jpg.eps} \\
-\includegraphics[width=3.95cm]{figures/results/a2008_002483.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/results/a2008_007466.jpg.eps} &
+\includegraphics[width=0.5\textwidth]{figures/add_res/roc_class.png.eps}
+\caption{Result of adjusting the factor $f$ in the subtractive
+algorithm. \subref{fig:fa} shows running the algorithm with $f=0.9$
+and \subref{fig:fb} shows running the algorithm with $f=1.0$.  Note
+that \subref{fig:fb} retains more of the cars, especially the two
+closest on the right and left, but also has more false-positive
+pixels, such as the ceiling region of the parking garage.}
+\label{fig:roc_class}
+\end{figure}
+
+
+\subsection{Segmentation}
+\label{ssec:segmentation}
+
+Figure \ref{fig:roc_seg} shows the segmentation precision of additive pruning 
+versus the false positive rate of object classification. The segmentation precision
+is in the range of $20\%$ to $50\%$. Some of the segmentation results are shown in 
+Figure \ref{fig:car_good_results},\ref{fig:car_bad_results},\ref{fig:aeroplane_good_results},\ref{fig:aeroplane_bad_results},\ref{fig:horse_good_results},\ref{fig:horse_bad_results}.\\
+
+Figures \ref{fig:car_good_results} and \ref{fig:car_bad_results} show the
+segmentations of car images by both additive and subtractive pruning
+algorithms. Figure \ref{fig:good_results} shows some good results,
+while Figure \ref{fig:bad_results} shows some bad results. This
+shows clear linkage between prominence of the side profile of the
+car and success of the segmentation. It appears that the attribute
+classifiers are more accurate on side profiles than front and rear
+shots, although rear shots performed reasonably well when tail
+lights were not illuminated.\\
+
+Figures \ref{fig:aeroplane_good_results}, \ref{fig:aeroplane_bad_results} and 
+\ref{fig:horse_good_results}, \ref{fig:horse_bad_results} show some good and bad 
+segmentation results of additive algorithm on aeroplane and horse classes. Because of the
+high complexity of the subtractive algorithm, we did not run it on these two classes. The good 
+results are accurate to segment out the objects. One important note is that our algorithm can segment out
+multiple objects at the same time. The bad segmentations either miss 
+part of the object or contain so much background. The bad ones are caused 
+by two reasons. First, the hierarchical segmentation tree is not fine enough. We did not use all 
+levels in the segmentation tree. The more levels we use, the more time we need to spend on it. 
+Also when the segments are too small, the attribute detection is nearly random, because the small regions 
+do not have enough points to represent their properties. Second, the training of attributes based on
+bounding boxes is not accurate, because of many background pixels can be included in the bounding boxes. 
+This is especially obvious to the horse images, since horses are not convex enough in the images. 
+All the segmented images in figure \ref{fig:horse_bad_results} contains grass or trees, especially the 
+left one which only contains grass. These images prove that the grass or trees models are actually
+included in the horse model.\\  
+
+
+\begin{figure}
+\centering
+\includegraphics[width=0.5\textwidth]{figures/add_res/roc_seg.png.eps}
+\caption{Result of adjusting the factor $f$ in the subtractive
+algorithm. \subref{fig:fa} shows running the algorithm with $f=0.9$
+and \subref{fig:fb} shows running the algorithm with $f=1.0$.  Note
+that \subref{fig:fb} retains more of the cars, especially the two
+closest on the right and left, but also has more false-positive
+pixels, such as the ceiling region of the parking garage.}
+\label{fig:roc_seg}
+\end{figure}
+
+
+
+%\begin{figure*}[p]
+%\centering
+%\begin{tabular}{ p{4cm} p{4cm} p{4cm} p{4cm} }
+%\includegraphics[width=3.95cm]{figures/results/2008_000052.jpg.eps} &
+%\includegraphics[width=3.95cm]{figures/results/2008_000828.jpg.eps} &
+%\includegraphics[width=3.95cm]{figures/results/2008_000952.jpg.eps} &
+%\includegraphics[width=3.95cm]{figures/results/2008_002198.jpg.eps} \\
+%\includegraphics[width=3.95cm]{figures/results/a2008_000052.jpg.eps} &
+%\includegraphics[width=3.95cm]{figures/results/a2008_000828.jpg.eps} &
+%\includegraphics[width=3.95cm]{figures/results/a2008_000952.jpg.eps} &
+%\includegraphics[width=3.95cm]{figures/results/a2008_002198.jpg.eps} \\
+%\includegraphics[width=3.95cm]{figures/results/b2008_000052.jpg.eps} &
+%\includegraphics[width=3.95cm]{figures/results/b2008_000828.jpg.eps} &
+%\includegraphics[width=3.95cm]{figures/results/b2008_000952.jpg.eps} &
+%\includegraphics[width=3.95cm]{figures/results/b2008_002198.jpg.eps} \\
+%\end{tabular}
+%\caption{Selected results from segmentation of cars from the Pascal2008
+%dataset.  The first row shows the original image.  The second row shows
+%the best segmentation from the additive algorithm.  The third row shows
+%the segmentation from the subtractive algorithm with $f=0.9$.}
+%\label{fig:good_results}
+%\end{figure*}
+
+%\begin{figure*}[p]
+%\centering
+%\begin{tabular}{ p{4cm} p{4cm} p{4cm} p{4cm} }
+%\includegraphics[width=3.95cm]{figures/results/2008_002483.jpg.eps} &
+%\includegraphics[width=3.95cm]{figures/results/2008_007466.jpg.eps} &
+%\includegraphics[width=3.95cm]{figures/results/2008_005378.jpg.eps} &
+%\includegraphics[width=3.95cm]{figures/results/2008_007529.jpg.eps} \\
+%\includegraphics[width=3.95cm]{figures/results/a2008_002483.jpg.eps} &
+%\includegraphics[width=3.95cm]{figures/results/a2008_007466.jpg.eps} &
 %\includegraphics[width=3.95cm]{figures/results/a2008_005378.jpg.eps} &
-Car not detected &
-\includegraphics[width=3.95cm]{figures/results/a2008_007529.jpg.eps} \\
-\includegraphics[width=3.95cm]{figures/results/b2008_002483.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/results/b2008_007466.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/results/b2008_005378.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/results/b2008_007529.jpg.eps} \\
+%Car not detected &
+%\includegraphics[width=3.95cm]{figures/results/a2008_007529.jpg.eps} \\
+%\includegraphics[width=3.95cm]{figures/results/b2008_002483.jpg.eps} &
+%\includegraphics[width=3.95cm]{figures/results/b2008_007466.jpg.eps} &
+%\includegraphics[width=3.95cm]{figures/results/b2008_005378.jpg.eps} &
+%\includegraphics[width=3.95cm]{figures/results/b2008_007529.jpg.eps} \\
+%\end{tabular}
+%\caption{Selected results from segmentation of cars from the Pascal2008
+%dataset.  The first row shows the original image.  The second row shows
+%the best segmentation from the additive algorithm.  The third row shows
+%the segmentation from the subtractive algorithm with $f=0.9$.}
+%\label{fig:bad_results}
+%\end{figure*}
+
+
+\begin{figure*}[p]
+\centering
+\begin{tabular}{ p{3cm} p{3cm} p{3cm} p{3cm} }
+\includegraphics[width=2.95cm]{figures/add_res/car/2008_007064.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/car/2008_000052.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/car/2008_007171.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/car/2008_000251.jpg.eps} \\
+
+\includegraphics[width=2.95cm]{figures/add_res/car/2008_007064.jpg_1_good.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/car/2008_000052.jpg_1_good.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/car/2008_007171.jpg_1_good.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/car/2008_000251.jpg_1_good.jpg.eps} \\
+
+\includegraphics[width=2.95cm]{figures/sub_results/2008_007064_1_bad_sub.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/sub_results/2008_000052_1_bad_sub.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/sub_results/2008_007171_1_bad_sub.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/sub_results/2008_000251_1_bad_sub.jpg.eps} \\
 \end{tabular}
 \caption{Selected results from segmentation of cars from the Pascal2008
 dataset.  The first row shows the original image.  The second row shows
 the best segmentation from the additive algorithm.  The third row shows
 the segmentation from the subtractive algorithm with $f=0.9$.}
-\label{fig:bad_results}
+\label{fig:car_good_results}
 \end{figure*}
 
 
 \begin{figure*}[p]
 \centering
-\begin{tabular}{ p{4cm} p{4cm} p{4cm} p{4cm} }
-\includegraphics[width=3.95cm]{figures/add_res/car/2008_007064.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/car/2008_000052.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/car/2008_007171.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/car/2008_000251.jpg.eps} \\
-\includegraphics[width=3.95cm]{figures/add_res/car/2008_007064.jpg_1_good.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/car/2008_000052.jpg_1_good.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/car/2008_007171.jpg_1_good.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/car/2008_000251.jpg_1_good.jpg.eps} \\
+\begin{tabular}{ p{3cm} p{3cm} p{3cm} p{3cm} }
+\includegraphics[width=2.95cm]{figures/add_res/car/bad/2008_001961.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/car/bad/2008_003132.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/car/bad/2008_004312.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/car/bad/2008_004414.jpg.eps} \\
+
+\includegraphics[width=2.95cm]{figures/add_res/car/bad/2008_001961.jpg_1_bad.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/car/bad/2008_003132.jpg_1_bad.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/car/bad/2008_004312.jpg_1_bad.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/car/bad/2008_004414.jpg_1_bad.jpg.eps} \\
+
+\includegraphics[width=2.95cm]{figures/sub_results/good/2008_001961_0.80.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/sub_results/good/2008_003132_1.10.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/sub_results/good/2008_004312_1.00.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/sub_results/good/2008_004414_0.90.jpg.eps} \\
+
 \end{tabular}
 \caption{Selected results from segmentation of cars from the Pascal2008
 dataset.  The first row shows the original image.  The second row shows
 the best segmentation from the additive algorithm.  The third row shows
 the segmentation from the subtractive algorithm with $f=0.9$.}
-\label{fig:good_results_car}
-\end{figure*}
-
-
-\begin{figure*}[p]
-\centering
-\begin{tabular}{ p{4cm} p{4cm} p{4cm} p{4cm} }
-\includegraphics[width=3.95cm]{figures/add_res/car/2008_000868.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/car/2008_000884.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/car/2008_001830.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/car/2008_001867.jpg.eps} \\
-\includegraphics[width=3.95cm]{figures/add_res/car/2008_000868.jpg_1_bad.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/car/2008_000884.jpg_1_bad.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/car/2008_001830.jpg_1_bad.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/car/2008_001867.jpg_1_bad.jpg.eps} \\
-\end{tabular}
-\caption{Selected results from segmentation of cars from the Pascal2008
-dataset.  The first row shows the original image.  The second row shows
-the best segmentation from the additive algorithm.  The third row shows
-the segmentation from the subtractive algorithm with $f=0.9$.}
-\label{fig:good_results_car}
+\label{fig:car_bad_results}
 \end{figure*}
 
 
 
 \begin{figure*}[p]
 \centering
-\begin{tabular}{ p{4cm} p{4cm} p{4cm} p{4cm} }
-\includegraphics[width=3.95cm]{figures/add_res/plane/2008_000021.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/plane/2008_001971.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/plane/2008_002673.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/plane/2008_002138.jpg.eps} \\
-\includegraphics[width=3.95cm]{figures/add_res/plane/2008_000021.jpg_2_good.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/plane/2008_001971.jpg_2_good.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/plane/2008_002673.jpg_2_good.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/plane/2008_002138.jpg_2_good.jpg.eps} \\
+\begin{tabular}{ p{3cm} p{3cm} p{3cm} p{3cm} }
+\includegraphics[width=2.95cm]{figures/add_res/plane/2008_000021.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/plane/2008_001971.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/plane/2008_002673.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/plane/2008_002138.jpg.eps} \\
+\includegraphics[width=2.95cm]{figures/add_res/plane/2008_000021.jpg_2_good.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/plane/2008_001971.jpg_2_good.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/plane/2008_002673.jpg_2_good.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/plane/2008_002138.jpg_2_good.jpg.eps} \\
 \end{tabular}
 \caption{Selected results from segmentation of cars from the Pascal2008
 dataset.  The first row shows the original image.  The second row shows
 the best segmentation from the additive algorithm.  The third row shows
 the segmentation from the subtractive algorithm with $f=0.9$.}
-\label{fig:good_results_car}
+\label{fig:aeroplane_good_results}
 \end{figure*}
 
 
 \begin{figure*}[p]
 \centering
-\begin{tabular}{ p{4cm} p{4cm} p{4cm} p{4cm} }
-\includegraphics[width=3.95cm]{figures/add_res/plane/2008_000804.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/plane/2008_001805.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/plane/2008_002358.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/plane/2008_003673.jpg.eps} \\
-\includegraphics[width=3.95cm]{figures/add_res/plane/2008_000804.jpg_2_bad.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/plane/2008_001805.jpg_2_okay.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/plane/2008_002358.jpg_2_okay.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/plane/2008_003673.jpg_2_bad.jpg.eps} \\
+\begin{tabular}{ p{3cm} p{3cm} p{3cm} p{3cm} }
+\includegraphics[width=2.95cm]{figures/add_res/plane/2008_000804.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/plane/2008_001805.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/plane/2008_002358.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/plane/2008_003673.jpg.eps} \\
+\includegraphics[width=2.95cm]{figures/add_res/plane/2008_000804.jpg_2_bad.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/plane/2008_001805.jpg_2_okay.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/plane/2008_002358.jpg_2_okay.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/plane/2008_003673.jpg_2_bad.jpg.eps} \\
 \end{tabular}
 \caption{Selected results from segmentation of cars from the Pascal2008
 dataset.  The first row shows the original image.  The second row shows
 the best segmentation from the additive algorithm.  The third row shows
 the segmentation from the subtractive algorithm with $f=0.9$.}
-\label{fig:good_results_car}
+\label{fig:aeroplane_bad_results}
 \end{figure*}
 
 
 \begin{figure*}[p]
 \centering
-\begin{tabular}{ p{4cm} p{4cm} p{4cm} p{4cm} }
-\includegraphics[width=3.95cm]{figures/add_res/horse/2008_001542.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/horse/2008_001992.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/horse/2008_002172.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/horse/2008_002509.jpg.eps} \\
-\includegraphics[width=3.95cm]{figures/add_res/horse/2008_001542.jpg_3_good.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/horse/2008_001992.jpg_3_good.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/horse/2008_002172.jpg_3_good.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/horse/2008_002509.jpg_3_good.jpg.eps} \\
+\begin{tabular}{ p{3cm} p{3cm} p{3cm} p{3cm} }
+\includegraphics[width=2.95cm]{figures/add_res/horse/2008_001542.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/horse/2008_001992.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/horse/2008_002172.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/horse/2008_002509.jpg.eps} \\
+\includegraphics[width=2.95cm]{figures/add_res/horse/2008_001542.jpg_3_good.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/horse/2008_001992.jpg_3_good.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/horse/2008_002172.jpg_3_good.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/horse/2008_002509.jpg_3_good.jpg.eps} \\
 \end{tabular}
 \caption{Selected results from segmentation of cars from the Pascal2008
 dataset.  The first row shows the original image.  The second row shows
 the best segmentation from the additive algorithm.  The third row shows
 the segmentation from the subtractive algorithm with $f=0.9$.}
-\label{fig:good_results_car}
+\label{fig:horse_good_results}
 \end{figure*}
 
 
 \begin{figure*}[p]
 \centering
-\begin{tabular}{ p{4cm} p{4cm} p{4cm} p{4cm} }
-\includegraphics[width=3.95cm]{figures/add_res/horse/2008_000403.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/horse/2008_002835.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/horse/2008_003055.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/horse/2008_004470.jpg.eps} \\
-\includegraphics[width=3.95cm]{figures/add_res/horse/2008_000403.jpg_3_bad.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/horse/2008_002835.jpg_3_bad.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/horse/2008_003055.jpg_3_okay.jpg.eps} &
-\includegraphics[width=3.95cm]{figures/add_res/horse/2008_004470.jpg_3_bad.jpg.eps} \\
+\begin{tabular}{ p{3cm} p{3cm} p{3cm} p{3cm} }
+\includegraphics[width=2.95cm]{figures/add_res/horse/2008_000403.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/horse/2008_002835.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/horse/2008_003055.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/horse/2008_004470.jpg.eps} \\
+\includegraphics[width=2.95cm]{figures/add_res/horse/2008_000403.jpg_3_bad.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/horse/2008_002835.jpg_3_bad.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/horse/2008_003055.jpg_3_okay.jpg.eps} &
+\includegraphics[width=2.95cm]{figures/add_res/horse/2008_004470.jpg_3_bad.jpg.eps} \\
 \end{tabular}
 \caption{Selected results from segmentation of cars from the Pascal2008
 dataset.  The first row shows the original image.  The second row shows
 the best segmentation from the additive algorithm.  The third row shows
 the segmentation from the subtractive algorithm with $f=0.9$.}
-\label{fig:good_results_car}
+\label{fig:horse_bad_results}
 \end{figure*}
 
 
