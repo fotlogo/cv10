@@ -65,7 +65,7 @@ University of Texas at Austin\\
 % abstract
 %-------------------------------------------------------------------------------
 \begin{abstract}
-Attributes have been shown to be effective in assisting object detection and
+Attributes have been shown to be effective in assisting object classification and
 classification, and they provide means to also incorporate semantic
 information available to and provided by humans.  On another front, the
 combination of segmentation and object classification has been shown to
@@ -87,7 +87,7 @@ Very recent work on using attributes as features \cite{farhadi09, lampert09}
 has shown that attributes are an effective way of communicating information
 about an object in an image.  Attributes are, in essence, semantic high-level
 features.  The attributes of an image are learned using low-level features,
-and once learned, they can be used in object detection and also in describing
+and once learned, they can be used in object classification and also in describing
 objects in an image that are unknown.
 
 Image segmentation is a very different field of research and has a very different
@@ -333,7 +333,7 @@ step.
 
 
 
-\section{Object Detection and Segmentation}
+\section{Object Classification and Segmentation}
 \label{sec:detection}
 
 Our objective is to detect objects and segment them out. Using a segmentation tree
@@ -413,9 +413,7 @@ $thre\_pos$ and $thre\_neg$, which means we are not sure whether
 there is an object in the node, so we just keep on searching its
 children.
 
-The object detection is based on the output of ADDITIVE\_PRUNE. If the output is not NULL, which means at least one node in the tree has similarity above $thre\_pos$, we think the object is detected in this image.
-
-(We also plan to do the vertical confidence propogation. But due to the slowness of the experiment, we cannot incorporate it in this draft. We will show it in the final paper.)
+The object classification is based on the output of ADDITIVE\_PRUNE. If the output is not NULL, which means at least one node in the tree has similarity above $thre\_pos$, we think the object is detected in this image.
 
 
 \begin{algorithm}
@@ -954,7 +952,7 @@ under-represented or ill-trained attributes.  This can be seen in the results
 where the body of the car is removed while the wheels or headlights are
 retained.
 
-As object detection is generally only as good as the features used, so also it
+As object classification is generally only as good as the features used, so also it
 appears that this approach to segmentation is only as good as the attribute
 selection and training.  We found that in images with poor segmentations, the
 confidences in prediction of car attributes were generally low.  One problem
