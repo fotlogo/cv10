@@ -967,18 +967,6 @@ under-represented or ill-trained attributes.  This can be seen in the results
 where the body of the car is removed while the wheels or headlights are
 retained.
 
-As object classification is generally only as good as the features used, so also it
-appears that this approach to segmentation is only as good as the attribute
-selection and training.  We found that in images with poor segmentations, the
-confidences in prediction of car attributes were generally low.  One problem
-with this implementation of attribute classifiers was that we didn't use
-the selection criterion described in \cite{farhadi09} that enhances within
-category prediction ability.  This means that, for example, the wheel attribute
-is highly similar to the car attribute and thus its discrimative ability
-is hurt.  One future direction for this research would be to improve the attribute
-training using the additional selection criterion and observe effects on
-the segmentations.
-
 An interesting orthogonal direction that could be taken with these ideas is to
 use segmentation using attributes as a diagnostic tool for attribute classifiers.
 That is, the segmentations produced by our algorithms can help zero in on areas
@@ -994,6 +982,20 @@ of attribute coherence.  If this can be achieved, then segmentation experiments
 could open up to non-experts, who could define coherence measures based on
 semantic attributes and then could use this approach to automatically segment large
 numbers of images even if no detection of their desired object exists.
+
+As object classification is generally only as good as the features used, so also it
+appears that this approach to segmentation is only as good as the attribute
+selection and training.  We found that in images with poor segmentations, the
+confidences in prediction of object-related attributes were generally low. The bounding 
+boxes groundtruth can include many background features into the attribute models. Those 
+features are very harmful. The extreme example is shown in the left image of figure \ref{fig:horse_bad_results}, 
+which only segments out the background grass. However, even if we have the segmentation 
+of objects as the groundtruth for training the attributes, we may still not have accurate 
+models, since the groundtruth is for objects not for attributes. For example, if we train 
+the attributes of wheel or metal only based on car images, we may get the car model not 
+the attributes model. One way to deal with this problem is to directly label attributes 
+groundtruth. Then we can get similar accurate attribute models as the object models. 
+
 
 Another problem with the attribute based method is that the attributes are not discriminative 
 enough to separate different objects. For example, if we use the general attributes of head, torso and leg to 
