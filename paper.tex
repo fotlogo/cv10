@@ -943,9 +943,6 @@ the best segmentation from the additive algorithm.}
 \section{Discussion}
 \label{sec:discussion}
 
-USE SUBTRACTIVE WITH ADDITIVE, FIX SUBTRACTIVE FRAGMENTATION
-
-
 It can be seen that in simple cases both additive and subtractive algorithms
 are able to segment out rough outlines of the objects.  In most cases, even
 the more difficult ones, at least part of the car was present in the final
@@ -976,37 +973,39 @@ using only one attribute.  If that attribute is ``fur'' and segmentations
 consistently show paws and tails, then it would quickly become clear that
 the fur attribute classifier has learned on something other than fur.
 
-The holy grail of this approach, of course, is to be able to segment objects
-for which the canonical attribute distribution is unknown, based on a measure
-of attribute coherence.  If this can be achieved, then segmentation experiments
-could open up to non-experts, who could define coherence measures based on
-semantic attributes and then could use this approach to automatically segment large
-numbers of images even if no detection of their desired object exists.
-
 As object classification is generally only as good as the features used, so also it
 appears that this approach to segmentation is only as good as the attribute
 selection and training.  We found that in images with poor segmentations, the
-confidences in prediction of object-related attributes were generally low. The bounding 
-boxes groundtruth can include many background features into the attribute models. Those 
-features are very harmful. The extreme example is shown in the left image of figure \ref{fig:horse_bad_results}, 
+confidences in prediction of object-related attributes were generally low. Using bounding 
+boxes as ground truth can introduce many background features into the attribute models. These 
+features can be harmful. The extreme example is shown in the left image of figure \ref{fig:horse_bad_results}, 
 which only segments out the background grass. However, even if we have the segmentation 
-of objects as the groundtruth for training the attributes, we may still not have accurate 
-models, since the groundtruth is for objects not for attributes. For example, if we train 
+of objects as the ground truth for training the attributes, we may still not have accurate 
+models, since the ground truth is for objects not for attributes. For example, if we train 
 the attributes of wheel or metal only based on car images, we may get the car model not 
 the attributes model. One way to deal with this problem is to directly label attributes 
-groundtruth. Then we can get similar accurate attribute models as the object models. 
-
+ground truth. Then we can get similar accurate attribute models as the object models. 
 
 Another problem with the attribute based method is that the attributes are not discriminative 
 enough to separate different objects. For example, if we use the general attributes of head, torso and leg to 
 do the object classification, we cannot separate dog and cat, since both of them have all of the attributes. 
-But those attributes can definitely separate the two objects from non-animal objects, such as car. This example demonstrates that 
-attributes are helpful for the object classification, but they are not discriminative enough. So one way to deal with this is to use 
-both attributes features and low level objects features for object classification. We can train a general attributes models first. 
+But those attributes can definitely separate the two objects from non-animal objects, such as car. So
+attributes are helpful for object classification, but they are often not discriminative enough. One way to deal with this is to use 
+both attributes features and low level objects features for object classification. We can train general attributes models first. 
 When we want to classify some specific objects, we can incorporate a small number of low level features from the specific object samples to the attributes 
 features. In this way, we both reduce the training samples for object classification, and make the attribute based method more discriminative.
 
+Interestingly, the region pruning algorithms are feature-type independent.  That
+is, they are not necessarily wedded to attribute features and could be used with
+any feature type given a similarity scoring function.  Interesting future work would
+be to try the pruning methods with lower-level features.
 
+The holy grail of this approach, of course, is to be able to segment any object
+with a given canonical attribute distribution.  If this can be achieved, 
+then segmentation experiments
+could open up to non-experts, who could define an attribute distribution
+based on their own knowledge and use a system that has already been trained
+on a large number of attributes to segment the object.
 
 \subsection*{Acknowledgements}
 Thanks to the authors of \cite{arbelaez09} and \cite{farhadi09} for use of their
