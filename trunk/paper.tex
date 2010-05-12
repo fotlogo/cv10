@@ -655,7 +655,7 @@ in the image.
 \hline Add     & 60.82 & 54.06 \\
 \hline
 \end{tabular}
-\caption{Object classification results of three baseline methods and the proposed additive algorithm.}
+\caption{Object classification results of three baseline methods(LowFea, Att1 and Random) and the proposed additive algorithm(Add).}
 \label{table:aresults}
 \end{table}
 
@@ -663,12 +663,7 @@ in the image.
 \begin{figure}
 \centering
 \includegraphics[width=0.5\textwidth]{figures/add_res/roc_class.png.eps}
-\caption{Result of adjusting the factor $f$ in the subtractive
-algorithm. \subref{fig:fa} shows running the algorithm with $f=0.9$
-and \subref{fig:fb} shows running the algorithm with $f=1.0$.  Note
-that \subref{fig:fb} retains more of the cars, especially the two
-closest on the right and left, but also has more false-positive
-pixels, such as the ceiling region of the parking garage.}
+\caption{ROC curves for object classification of car, aeroplane, horse and average.}
 \label{fig:roc_class}
 \end{figure}
 
@@ -735,12 +730,7 @@ included in the horse model.\\
 \begin{figure}
 \centering
 \includegraphics[width=0.5\textwidth]{figures/add_res/roc_seg.png.eps}
-\caption{Result of adjusting the factor $f$ in the subtractive
-algorithm. \subref{fig:fa} shows running the algorithm with $f=0.9$
-and \subref{fig:fb} shows running the algorithm with $f=1.0$.  Note
-that \subref{fig:fb} retains more of the cars, especially the two
-closest on the right and left, but also has more false-positive
-pixels, such as the ceiling region of the parking garage.}
+\caption{The curve of segmentation precision versus false positive classification rate.}
 \label{fig:roc_seg}
 \end{figure}
 
@@ -823,11 +813,10 @@ quadratic least-squares fit.}
 \includegraphics[width=2.95cm]{figures/sub_results/2008_007171_1_bad_sub.jpg.eps} &
 \includegraphics[width=2.95cm]{figures/sub_results/2008_000251_1_bad_sub.jpg.eps} \\
 \end{tabular}
-\caption{Selected results from segmentation of cars from the Pascal2008
-dataset.  The first row shows the original image.  The second row shows
-the best segmentation from the additive algorithm.  The third row shows
-the segmentation from the subtractive algorithm with $f$ at different values
-between 0.9 and 1.0.}
+\caption{Selected results from segmentation of cars, which additive algorithm performs good.
+  The first row shows the original image.  The second row shows
+the segmentation from the additive algorithm.  The third row shows
+the segmentation from the subtractive algorithm.}
 \label{fig:car_good_results}
 \end{figure*}
 
@@ -851,11 +840,10 @@ between 0.9 and 1.0.}
 \includegraphics[width=2.95cm]{figures/sub_results/good/2008_004414_0.90.jpg.eps} \\
 
 \end{tabular}
-\caption{Selected results from segmentation of cars from the Pascal2008
-dataset.  The first row shows the original image.  The second row shows
-the best segmentation from the additive algorithm.  The third row shows
-the segmentation from the subtractive algorithm with $f$ at different values
-between 0.9 and 1.0.}
+\caption{Selected results from segmentation of cars, which subtractive algorithm performs good. 
+ The first row shows the original image.  The second row shows
+the segmentation from the additive algorithm.  The third row shows
+the segmentation from the subtractive algorithm.}
 \label{fig:car_bad_results}
 \end{figure*}
 
@@ -873,9 +861,9 @@ between 0.9 and 1.0.}
 \includegraphics[width=2.95cm]{figures/add_res/plane/2008_002673.jpg_2_good.jpg.eps} &
 \includegraphics[width=2.95cm]{figures/add_res/plane/2008_002138.jpg_2_good.jpg.eps} \\
 \end{tabular}
-\caption{Selected results from segmentation of planes from the Pascal2008
-dataset.  The first row shows the original image.  The second row shows
-the best segmentation from the additive algorithm.}
+\caption{Selected good results from segmentation of aeroplanes.  
+The first row shows the original image.  The second row shows
+the segmentation from the additive algorithm.}
 \label{fig:aeroplane_good_results}
 \end{figure*}
 
@@ -892,9 +880,9 @@ the best segmentation from the additive algorithm.}
 \includegraphics[width=2.95cm]{figures/add_res/plane/2008_002358.jpg_2_okay.jpg.eps} &
 \includegraphics[width=2.95cm]{figures/add_res/plane/2008_003673.jpg_2_bad.jpg.eps} \\
 \end{tabular}
-\caption{Selected results from segmentation of planes from the Pascal2008
-dataset.  The first row shows the original image.  The second row shows
-the best segmentation from the additive algorithm.}
+\caption{Selected bad results from segmentation of aeroplanes.
+ The first row shows the original image.  The second row shows
+the segmentation from the additive algorithm.}
 \label{fig:aeroplane_bad_results}
 \end{figure*}
 
@@ -911,9 +899,9 @@ the best segmentation from the additive algorithm.}
 \includegraphics[width=2.95cm]{figures/add_res/horse/2008_002172.jpg_3_good.jpg.eps} &
 \includegraphics[width=2.95cm]{figures/add_res/horse/2008_002509.jpg_3_good.jpg.eps} \\
 \end{tabular}
-\caption{Selected results from segmentation of horses from the Pascal2008
-dataset.  The first row shows the original image.  The second row shows
-the best segmentation from the additive algorithm.}
+\caption{Selected good results from segmentation of horses.  
+The first row shows the original image.  The second row shows
+the segmentation from the additive algorithm.}
 \label{fig:horse_good_results}
 \end{figure*}
 
@@ -930,9 +918,9 @@ the best segmentation from the additive algorithm.}
 \includegraphics[width=2.95cm]{figures/add_res/horse/2008_003055.jpg_3_okay.jpg.eps} &
 \includegraphics[width=2.95cm]{figures/add_res/horse/2008_004470.jpg_3_bad.jpg.eps} \\
 \end{tabular}
-\caption{Selected results from segmentation of horses from the Pascal2008
-dataset.  The first row shows the original image.  The second row shows
-the best segmentation from the additive algorithm.}
+\caption{Selected bad results from segmentation of horses.  
+The first row shows the original image.  The second row shows
+the segmentation from the additive algorithm.}
 \label{fig:horse_bad_results}
 \end{figure*}
 
