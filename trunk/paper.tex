@@ -95,7 +95,8 @@ goal - that of finding very accurate boundaries of objects in an image.
 
 Our work focuses on leveraging attributes to produce accurate segmentations.
 The idea is to find image regions with attribute distributions very similar
-to some canonical distribution for an object.  We define the ``canonical distribution''
+to some canonical distribution for an object.  Figure \ref{fig:truck} shows
+an example.  We define the ``canonical distribution''
 to be an attribute distribution representative of that object.  For example, the
 canonical distribution for a ``car'' would have some measure of ``shininess'', some
 other measure of ``window'' and so forth.  If
@@ -103,12 +104,12 @@ regions can be combined together to for larger regions with attribute
 distributions matching the object's canonical distribution then one can
 declare the combined region an accurate segmentation for that object.
 
-We note that it is possible that one segmented region may contain the object and
-nothing else.  Though possible, in practice it is highly unlikely.  Even for rather
-simple objects, the true region of the object is distributed among various
-segmentations.  This is because all but the most trivial objects have different
-sub-regions of different colors, textures, contours, etc.  Thus we must search
-for a combination of these sub-regions that make up the object.
+%We note that it is possible that one segmented region may contain the object and
+%nothing else.  Though possible, in practice it is highly unlikely.  Even for rather
+%simple objects, the true region of the object is distributed among various
+%segmentations.  This is because all but the most trivial objects have different
+%sub-regions of different colors, textures, contours, etc.  Thus we must search
+%for a combination of these sub-regions that make up the object.
 
 
 \begin{figure}
@@ -209,11 +210,16 @@ generate multiple segments, and detect different parts of objects in
 each segment. The final objects are voted for by the various parts.
 We will initially be using the same segmentation algorithm used in
 this paper, but without discarding the hierarchy.
-Russell et al \cite{russell06} detect the whole object in each of
-the multiple segment, by assuming that most objects get segmented
-correctly at least once during the multiple segmentation. Our approach
-will be far less aggressive in that we will use object classes and
-features (attributes in our case) that are known \emph{a priori}.
+
+Russell et al \cite{russell06} attempt object classification 
+by assuming that most objects get segmented
+correctly at least once during the multiple segmentation. We make no such
+assumption.  Rather, we find some region that contains the entire
+object (which may be the original image) and refine that rough
+segmentation.  Russell et all also learn object classes in an
+unsupervised manner.  Our approach
+will be far less aggressive in that we will use object classes 
+that are known \emph{a priori}.
 Pantofaru et
 al \cite{pantofaru} use three different segmentation algorithms to
 generate the multiple segments. After detecting objects in each
@@ -279,7 +285,16 @@ Clear & Shiny & Vegetation & Leather \\
 \label{fig:atts}
 \end{figure}
 
-We use a similar algorithm to that used in \cite{farhadi09} to train the attribute models. Three different type of features are used: HOG, texture and color descriptors \cite{farhadi09}.  We use kmeans to quantize the features. The HOG descriptors are quantized into 1000 clusters, and the texture and color are quantized to 256 and 128 clusters, respectively. All quantized features are concatenated to form a 1384 dimensional feature.  These low-level features are generated for training and testing datasets using the entire image.  This is done to avoid introducing any feature artifacts as a result of black space surrounding segmented regions.
+We use a similar algorithm to that used in \cite{farhadi09} to train the attribute models. 
+Three different type of features are used: HOG, texture and color descriptors \cite{farhadi09}.  
+We use kmeans to quantize the features. The HOG descriptors are quantized into 1000 clusters, 
+and the texture and color are quantized to 256 and 128 clusters, respectively. 
+All quantized features are concatenated to form a 1384 dimensional feature.
+Since all features are local, we represent a segment by using only features inside the segment
+to produce a feature histogram.  In other words, rather than segmenting the image and finding features,
+we find features and then segment the features.
+This is done to avoid introducing any feature artifacts as a result of black space surrounding 
+segmented regions in the image.
 
 For training, we use an SVM classifier with a Gaussian kernel to train
 the model for each attribute.  
