@@ -455,6 +455,7 @@ The object detection is based on the output of ADDITIVE\_PRUNE. If the output is
 
 
 \subsection{Subtractive algorithm}
+\label{sec:sub}
 
 The subtractive algorithm relies on the idea that if removing a region from
 an image doesn't significantly affect the probability of the image containing
@@ -465,9 +466,10 @@ The algorithm itself is shown in algorithm \ref{alg:sub_prune}.
 
 \begin{algorithm}
 \begin{algorithmic}
+  \STATE \textbf{global:}
+  \STATE \hspace{3 mm} master mask $m_m$
   \STATE \textbf{input:}
   \STATE \hspace{3 mm} node $n$ in segmentation tree
-  \STATE \hspace{3 mm} master mask $m_m$
   \STATE \hspace{3 mm} similarity $sim_{root}$ on root node
   \STATE \hspace{3 mm} factor $f$
   \STATE \textbf{output:}
@@ -479,9 +481,9 @@ The algorithm itself is shown in algorithm \ref{alg:sub_prune}.
   \STATE $sim=HI(obj\_model,pred\_model)$
   %\STATE $H_{pred}$ := predict attributes on image($m_n \cap m_m$)
   %\STATE $\displaystyle P_{pred} = \frac{H_{pattern} \cap H_{pred}}{H_{pattern} \cup H_{pred}}$
-  \IF{$sim < f sim_{root}$}
+  \IF{$sim < f \cdot sim_{root}$}
     \FOR{$i=1$ to $n.childNum$}
-      \STATE s\{i\}=SUBTRACTIVE\_PRUNE(n.children\{i\},$m_m$,
+      \STATE SUBTRACTIVE\_PRUNE(n.children\{i\},
       \STATE ...$sim_{root}$, $f$)
     \ENDFOR
     %\STATE SUBTRACTIVE\_PRUNE(n.children)
@@ -535,7 +537,7 @@ This is evident in figure \ref{fig:sub1}.  The mobile homes in the background
 have car attributes and thus are included in the final segmentation, even
 though they take a far less prominent role in the unsegmented image.  Another
 example is figure \ref{fig:truck}, where the two cars visually behind the truck
-are segmented alongside the truck.
+are segmented together with the truck.
 
 \begin{figure}
 \centering
@@ -581,20 +583,24 @@ in the image.}
 
 
 In this section, we evaluate our attribute based object classification
-and segmentation algorithm. We will also analyse the advantages and disadvantages of out algorithm.\\
+and segmentation algorithms. We also analyze the advantages and 
+disadvantages of our algorithms.\\
 
 \subsection{Dataset}
 \label{ssec:dataset}
 
-We use the Pascal2008 dataset for both training and testing. This dataset has a lot of real life
-images which are more difficult to classify. The objects are labeled
-by bounding boxes not accurate segmentation. For training the
-attributes, we use the pascal2008 training set. The attribute
+We used the Pascal2008 dataset for both training and testing. This dataset contains real life
+images which are generally difficult to classify. 
+For training and testing of classification and
+segmentation we used the pascal2008 training and validation sets, respectively.
+The objects are labeled
+by bounding boxes -- unfortunately accurate segmentations are not available
+with this dataset.  The attribute
 annotations used in \cite{farhadi09} are freely available and we
-used them for training too. For testing the classification and
-segmentation, we use the pascal2008 validation set. Three classes are used in this experiment, including car,
-aeroplane and horse. We get 328 testing images, with car 150, aeroplane 103 and horse 93. Note that one image 
-can contain multiple objects in multiple classes.\\
+used them for both training and testing. Three classes are used in this experiment, including car,
+airplane and horse. We used 328 test images, with 150 car, 103 airplane and 93 horse. 
+Note that any given image may
+contain multiple objects in multiple classes.\\
 
 \subsection{Measure}
 \label{ssec:measure}
@@ -619,7 +625,11 @@ the object classification directly. Att1 means that we use the attribute distrib
 but we only test it in the whole image without segmentation. Random means random prediction. Add is our
 proposed algorithm with additive pruning. The proposed algorithm has the highest precision comparing 
 with the other baselines, while the recall is a little lower than LowFea. Figure \ref{fig:roc_class} 
-shows the ROC curve for each class and the average.\\
+shows the ROC curve for each class and the average.
+
+The subtractive algorithm is not included in classification results as it performs no
+object detection or classification and assumes that the given object is present
+in the image.
 
 
 \begin{table}
@@ -656,33 +666,56 @@ pixels, such as the ceiling region of the parking garage.}
 Figure \ref{fig:roc_seg} shows the segmentation precision of additive pruning 
 versus the false positive rate of object classification. The segmentation precision
 is in the range of $20\%$ to $50\%$. Some of the segmentation results are shown in 
-Figure \ref{fig:car_good_results},\ref{fig:car_bad_results},\ref{fig:aeroplane_good_results},\ref{fig:aeroplane_bad_results},\ref{fig:horse_good_results},\ref{fig:horse_bad_results}.\\
+Figure \ref{fig:car_good_results},\ref{fig:car_bad_results},\ref{fig:aeroplane_good_results},\ref{fig:aeroplane_bad_results},\ref{fig:horse_good_results},\ref{fig:horse_bad_results}.  Again, the subtractive algorithm doesn't produce
+analogous results as it performs no classification.
+
+Figure \ref{fig:sub_seg_prec} shows a plot of segmentation precision against 
+attribute similarity for the subtractive algorithm.  As discussed in section 
+\ref{sec:sub}, the original image (the root node of the segmentation tree)
+is given an attribute similarity score compared to the canonical.  This score
+drives the subtractive algorithm, and the final segmentation can have a score
+no lower than $f\cdot sim_{root}$.  The figure shows the final segmentation's
+similarity score along the x-axis and the segmentation precision on the y-axis.
+As expected, as the similarity score (or confidence in the existence of the
+object) increases, the quality of the segmentation also increases.
 
 Figures \ref{fig:car_good_results} and \ref{fig:car_bad_results} show the
 segmentations of car images by both additive and subtractive pruning
-algorithms. Figure \ref{fig:good_results} shows some good results,
-while Figure \ref{fig:bad_results} shows some bad results. This
-shows clear linkage between prominence of the side profile of the
-car and success of the segmentation. It appears that the attribute
-classifiers are more accurate on side profiles than front and rear
-shots, although rear shots performed reasonably well when tail
-lights were not illuminated.\\
+algorithms. These show that it is somewhat unclear which pruning algorithm
+gives the best performance (although a precision measure could be used if we
+had better ground truth data).  But the results show some interesting patterns.
+In general, the subtractive algorithm tends to produce more fragmented results
+than the additive.  This is because the pruning algorithm searches all the way
+to the bottom of the segmentation tree searching for regions that can be removed.
+There are various techniques that could fix this, such as doing some kind of
+confidence propagation from a ``good'' node to its descendents, in a similar
+spirit to \cite{borenstein04}.  But while the additive algorithm does tend
+to retain large portions of the car, it is often far too conservative, as
+can be seen in figure \ref{fig:car_bad_results}.  Of course, this can be 
+fixed by adjusting the threshold parameters, but this puts too much responsibility
+on parameter selection for specific cases and causes it to not generalize well.
 
 Figures \ref{fig:aeroplane_good_results}, \ref{fig:aeroplane_bad_results} and 
 \ref{fig:horse_good_results}, \ref{fig:horse_bad_results} show some good and bad 
-segmentation results of additive algorithm on aeroplane and horse classes. Because of the
-high complexity of the subtractive algorithm, we did not run it on these two classes. The good 
-results are accurate to segment out the objects. One important note is that our algorithm can segment out
-multiple objects at the same time. The bad segmentations either miss 
-part of the object or contain so much background. The bad ones are caused 
-by two reasons. First, the hierarchical segmentation tree is not fine enough. We did not use all 
-levels in the segmentation tree. The more levels we use, the more time we need to spend on it. 
-Also when the segments are too small, the attribute detection is nearly random, because the small regions 
-do not have enough points to represent their properties. Second, the training of attributes based on
+segmentation results of the additive algorithm on airplane and horse classes. Because of the
+high complexity of the subtractive algorithm, we did not run it on these two classes. 
+Figures \ref{fig:aeroplane_good_results} and \ref{fig:horse_good_results} show some
+of the more impressive segmentations.  The third column in each figure shows that
+the algorithm segments out multiple objects at the same time.
+
+Figures \ref{fig:aeroplane_bad_results} and \ref{fig:horse_bad_results} show results
+that either miss part of the object or contain a lot of background.  Extreme cases,
+such as the second image in \ref{fig:horse_bad_results} mask out the object of interest
+(horse, in this case) and almost nothing else.  These errors are cause by two things:
+first, the additive algorithm currently does not use all levels in the segmentation tree,
+as it would have made testing take prohibitively long.
+Another problem with searching deep in the tree is that when the segments are too small, 
+the attribute detection is nearly random, because the small regions 
+don't have enough points to represent their properties. Second, the training of attributes based on
 bounding boxes is not accurate, because of many background pixels can be included in the bounding boxes. 
-This is especially obvious to the horse images, since horses are not convex enough in the images. 
+This is especially obvious to the horse images, since horses are far from having a convex shape. 
 All the segmented images in figure \ref{fig:horse_bad_results} contains grass or trees, especially the 
-left one which only contains grass. These images prove that the grass or trees models are actually
+left one which only contains grass. These images imply that the grass and tree models are actually
 included in the horse model.\\  
 
 
@@ -780,7 +813,8 @@ quadratic least-squares fit.}
 \caption{Selected results from segmentation of cars from the Pascal2008
 dataset.  The first row shows the original image.  The second row shows
 the best segmentation from the additive algorithm.  The third row shows
-the segmentation from the subtractive algorithm with $f=0.9$.}
+the segmentation from the subtractive algorithm with $f$ at different values
+between 0.9 and 1.0.}
 \label{fig:car_good_results}
 \end{figure*}
 
@@ -807,7 +841,8 @@ the segmentation from the subtractive algorithm with $f=0.9$.}
 \caption{Selected results from segmentation of cars from the Pascal2008
 dataset.  The first row shows the original image.  The second row shows
 the best segmentation from the additive algorithm.  The third row shows
-the segmentation from the subtractive algorithm with $f=0.9$.}
+the segmentation from the subtractive algorithm with $f$ at different values
+between 0.9 and 1.0.}
 \label{fig:car_bad_results}
 \end{figure*}
 
@@ -825,10 +860,9 @@ the segmentation from the subtractive algorithm with $f=0.9$.}
 \includegraphics[width=2.95cm]{figures/add_res/plane/2008_002673.jpg_2_good.jpg.eps} &
 \includegraphics[width=2.95cm]{figures/add_res/plane/2008_002138.jpg_2_good.jpg.eps} \\
 \end{tabular}
-\caption{Selected results from segmentation of cars from the Pascal2008
+\caption{Selected results from segmentation of planes from the Pascal2008
 dataset.  The first row shows the original image.  The second row shows
-the best segmentation from the additive algorithm.  The third row shows
-the segmentation from the subtractive algorithm with $f=0.9$.}
+the best segmentation from the additive algorithm.}
 \label{fig:aeroplane_good_results}
 \end{figure*}
 
@@ -845,10 +879,9 @@ the segmentation from the subtractive algorithm with $f=0.9$.}
 \includegraphics[width=2.95cm]{figures/add_res/plane/2008_002358.jpg_2_okay.jpg.eps} &
 \includegraphics[width=2.95cm]{figures/add_res/plane/2008_003673.jpg_2_bad.jpg.eps} \\
 \end{tabular}
-\caption{Selected results from segmentation of cars from the Pascal2008
+\caption{Selected results from segmentation of planes from the Pascal2008
 dataset.  The first row shows the original image.  The second row shows
-the best segmentation from the additive algorithm.  The third row shows
-the segmentation from the subtractive algorithm with $f=0.9$.}
+the best segmentation from the additive algorithm.}
 \label{fig:aeroplane_bad_results}
 \end{figure*}
 
@@ -865,10 +898,9 @@ the segmentation from the subtractive algorithm with $f=0.9$.}
 \includegraphics[width=2.95cm]{figures/add_res/horse/2008_002172.jpg_3_good.jpg.eps} &
 \includegraphics[width=2.95cm]{figures/add_res/horse/2008_002509.jpg_3_good.jpg.eps} \\
 \end{tabular}
-\caption{Selected results from segmentation of cars from the Pascal2008
+\caption{Selected results from segmentation of horses from the Pascal2008
 dataset.  The first row shows the original image.  The second row shows
-the best segmentation from the additive algorithm.  The third row shows
-the segmentation from the subtractive algorithm with $f=0.9$.}
+the best segmentation from the additive algorithm.}
 \label{fig:horse_good_results}
 \end{figure*}
 
@@ -885,10 +917,9 @@ the segmentation from the subtractive algorithm with $f=0.9$.}
 \includegraphics[width=2.95cm]{figures/add_res/horse/2008_003055.jpg_3_okay.jpg.eps} &
 \includegraphics[width=2.95cm]{figures/add_res/horse/2008_004470.jpg_3_bad.jpg.eps} \\
 \end{tabular}
-\caption{Selected results from segmentation of cars from the Pascal2008
+\caption{Selected results from segmentation of horses from the Pascal2008
 dataset.  The first row shows the original image.  The second row shows
-the best segmentation from the additive algorithm.  The third row shows
-the segmentation from the subtractive algorithm with $f=0.9$.}
+the best segmentation from the additive algorithm.}
 \label{fig:horse_bad_results}
 \end{figure*}
 
@@ -898,6 +929,10 @@ the segmentation from the subtractive algorithm with $f=0.9$.}
 %-------------------------------------------------------------------------------
 \section{Discussion}
 \label{sec:discussion}
+
+USE SUBTRACTIVE WITH ADDITIVE, FIX SUBTRACTIVE FRAGMENTATION
+
+
 It can be seen that in simple cases both additive and subtractive algorithms
 are able to segment out rough outlines of the objects.  In most cases, even
 the more difficult ones, at least part of the car was present in the final
